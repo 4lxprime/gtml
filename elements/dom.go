@@ -14,6 +14,7 @@ import (
 // represents the standard and minimum required DOM element
 type Element interface {
 	GetChilds() []Element
+	AppendChild(Element)
 	GetElName() string
 	// and so every dom element property
 	DOMElement
@@ -39,7 +40,7 @@ type DOMElement interface {
 	GetTitle() string
 }
 
-// BasicElement represents every attributes of a standard
+// BasicElement represents every attributes of a global
 // D.O.M. element and will be used in every element.
 //
 // NOTE: this will implement the DOMElement interface
@@ -175,6 +176,9 @@ func Build(element Element) js.Func {
 
 		// runtime loaded function
 		js.Global().Call("loaded")
+
+		// runtime start the state manager
+		js.Global().Call("stateManagerStart")
 
 		return nil
 	})

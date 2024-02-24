@@ -7,108 +7,89 @@ type Attribute struct {
 	Value interface{} // can be a function also
 }
 
-func Async() Attribute {
-	return Attribute{
+// every boole arguments with default false
+var (
+	Async = Attribute{
 		Name:  "Async",
 		Value: true,
 	}
-}
 
-func AutoFocus() Attribute {
-	return Attribute{
+	AutoFocus = Attribute{
 		Name:  "Autofocus",
 		Value: true,
 	}
-}
 
-func AutoPlay() Attribute {
-	return Attribute{
+	AutoPlay = Attribute{
 		Name:  "Autoplay",
 		Value: true,
 	}
-}
 
-func Checked() Attribute {
-	return Attribute{
+	Checked = Attribute{
 		Name:  "Checked",
 		Value: true,
 	}
-}
 
-func Controls() Attribute {
-	return Attribute{
+	Controls = Attribute{
 		Name:  "Controls",
 		Value: true,
 	}
-}
 
-func Defer() Attribute {
-	return Attribute{
+	Defer = Attribute{
 		Name:  "Defer",
 		Value: true,
 	}
-}
 
-func Disabled() Attribute {
-	return Attribute{
+	Disabled = Attribute{
 		Name:  "Disabled",
 		Value: true,
 	}
-}
 
-func Loop() Attribute {
-	return Attribute{
+	Loop = Attribute{
 		Name:  "Loop",
 		Value: true,
 	}
-}
 
-func Multiple() Attribute {
-	return Attribute{
+	Multiple = Attribute{
 		Name:  "Multiple",
 		Value: true,
 	}
-}
 
-func Muted() Attribute {
-	return Attribute{
+	Muted = Attribute{
 		Name:  "Muted",
 		Value: true,
 	}
-}
 
-func PlaysInline() Attribute {
-	return Attribute{
+	Open = Attribute{
+		Name:  "Open",
+		Value: true,
+	}
+
+	PlaysInline = Attribute{
 		Name:  "PlaysInline",
 		Value: true,
 	}
-}
 
-func ReadOnly() Attribute {
-	return Attribute{
+	ReadOnly = Attribute{
 		Name:  "ReadOnly",
 		Value: true,
 	}
-}
 
-func Required() Attribute {
-	return Attribute{
+	Required = Attribute{
 		Name:  "Required",
 		Value: true,
 	}
-}
 
-func Selected() Attribute {
-	return Attribute{
+	Selected = Attribute{
 		Name:  "Selected",
 		Value: true,
 	}
-}
+)
 
 // specifies the type of file the server accepts
 //
 // example:
-//  <input type="file" name="poster" accept="image/png, image/jpeg" />
+//
+//	<input type="file" name="poster" accept="image/png, image/jpeg" />
 func Accept(v ...any) Attribute {
 	return Attribute{
 		Name:  "Accept",
@@ -119,7 +100,8 @@ func Accept(v ...any) Attribute {
 // action used only in Form element
 //
 // example:
-//  <form action="/action_page.php">
+//
+//	<form action="/action_page.php">
 func Action(value string) Attribute {
 	return Attribute{
 		Name:  "Action",
@@ -130,7 +112,8 @@ func Action(value string) Attribute {
 // alternative text string to display on browsers that do not display images.
 //
 // example:
-//  <img src="https://via.placeholder.com/350x150" alt="Text that represents the image">
+//
+//	<img src="https://via.placeholder.com/350x150" alt="Text that represents the image">
 //
 // NOTE: the alt is required if the href attribute is used.
 func Alt(v ...any) Attribute {
@@ -143,7 +126,8 @@ func Alt(v ...any) Attribute {
 // Aria name is the aria-<name>
 //
 // example:
-//  <div role="progressbar" aria-valuemin="0" aria-valuemax="100" />
+//
+//	<div role="progressbar" aria-valuemin="0" aria-valuemax="100" />
 func Aria(name string, value string) Attribute {
 	return Attribute{
 		Name:  "Aria",
@@ -154,7 +138,8 @@ func Aria(name string, value string) Attribute {
 // specifies the type of content for the link
 //
 // example:
-//  <link rel="preload" href="style.css" as="style">
+//
+//	<link rel="preload" href="style.css" as="style">
 //
 // NOTE: can only be used if the content is being preloaded
 func As(value string) Attribute {
@@ -167,7 +152,8 @@ func As(value string) Attribute {
 // specifies if form elements should be automatically completed by the browser
 //
 // example:
-//  <input name="email" id="email" type="email" autocomplete="off" />
+//
+//	<input name="email" id="email" type="email" autocomplete="off" />
 //
 // NOTE: should only be on/off
 func AutoComplete(value string) Attribute {
@@ -180,7 +166,8 @@ func AutoComplete(value string) Attribute {
 // specifies the character encoding used for the document
 //
 // example:
-//  <meta charset="utf-8">
+//
+//	<meta charset="utf-8">
 func Charset(value string) Attribute {
 	return Attribute{
 		Name:  "Charset",
@@ -191,7 +178,8 @@ func Charset(value string) Attribute {
 // link css style to the element
 //
 // example:
-//  <p class="note editorial">JS is sooo slow</p>
+//
+//	<p class="note editorial">JS is sooo slow</p>
 func Class(v ...any) Attribute {
 	return Attribute{
 		Name:  "Class",
@@ -202,7 +190,8 @@ func Class(v ...any) Attribute {
 // specifies the width of the textarea
 //
 // example:
-//  <textarea rows="4" cols="50">
+//
+//	<textarea rows="4" cols="50">
 //
 // NOTE: default value is 20 and this work only on textarea elements
 func Cols(value int64) Attribute {
@@ -215,7 +204,8 @@ func Cols(value int64) Attribute {
 // specifies the amount of columns the cell extends
 //
 // example:
-//  <td colspan="2">Golang is better</td>
+//
+//	<td colspan="2">Golang is better</td>
 //
 // NOTE: work only on td elements
 func ColSpan(value int64) Attribute {
@@ -228,7 +218,8 @@ func ColSpan(value int64) Attribute {
 // specifies the content for the element
 //
 // example:
-//  <meta name="description" content="react ?... nahhh">
+//
+//	<meta name="description" content="react ?... nahhh">
 func Content(v ...any) Attribute {
 	return Attribute{
 		Name:  "Content",
@@ -242,7 +233,8 @@ func Content(v ...any) Attribute {
 // the HTML and its DOM representation by scripts
 //
 // example:
-//  <li data-id="97865"></li>
+//
+//	<li data-id="97865"></li>
 //
 // NOTE: work only on td elements
 func Data(name, value string) Attribute {
@@ -255,7 +247,8 @@ func Data(name, value string) Attribute {
 // specifies the ID of the element that the label element is related to
 //
 // example:
-//  <label for="golang">Golang is simple</label>
+//
+//	<label for="golang">Golang is simple</label>
 func For(value string) Attribute {
 	return Attribute{
 		Name:  "For",
@@ -266,11 +259,12 @@ func For(value string) Attribute {
 // specifies the form(s) that the element belongs to
 //
 // example:
-//  <button type="submit" form="form1" value="Submit">Submit</button>
+//
+//	<button type="submit" form="form1" value="Submit">Submit</button>
 //
 // NOTE: this will work on: button, dieldset, input, label, meter,
 // object, output, select, textarea
-func Form(value string) Attribute {
+func FormAttr(value string) Attribute {
 	return Attribute{
 		Name:  "Form",
 		Value: value,
@@ -280,7 +274,8 @@ func Form(value string) Attribute {
 // specifies the height of the element, default is measured in pixels
 //
 // example:
-//  <img src="https://via.placeholder.com/350x150" height="42" width="42">
+//
+//	<img src="https://via.placeholder.com/350x150" height="42" width="42">
 //
 // NOTE: this will work on: canvas, embed, iframe, img, input, object, video
 func Height(value int64) Attribute {
@@ -293,7 +288,8 @@ func Height(value int64) Attribute {
 // determines the URL to where the link will point to or the name of the anchor
 //
 // example:
-//  <a href="https://go.dev/">Golang is Fast</a>
+//
+//	<a href="https://go.dev/">Golang is Fast</a>
 func Href(value string) Attribute {
 	return Attribute{
 		Name:  "Href",
@@ -304,7 +300,8 @@ func Href(value string) Attribute {
 // defines an identifier (ID) which must be unique in the whole document
 //
 // example:
-//  <p id="golang">Golang is blazinglyfast</p>
+//
+//	<p id="golang">Golang is blazinglyfast</p>
 //
 // NOTE: will apply on every element
 func ID(value string) Attribute {
@@ -317,7 +314,8 @@ func ID(value string) Attribute {
 // define the language of an element
 //
 // example:
-//  <p lang="fr">Golang est incroyable</p>
+//
+//	<p lang="fr">Golang est incroyable</p>
 //
 // NOTE: will apply on every element
 func Lang(value string) Attribute {
@@ -332,7 +330,8 @@ func Lang(value string) Attribute {
 // for example the user scrolls near them
 //
 // example:
-//  <img src="https://via.placeholder.com/350x150" loading="lazy">
+//
+//	<img src="https://via.placeholder.com/350x150" loading="lazy">
 //
 // NOTE: will apply only on img elements
 func Loading(v ...any) Attribute {
@@ -345,7 +344,8 @@ func Loading(v ...any) Attribute {
 // specifies the maximum value for this element
 //
 // example:
-//  <input type="number" name="quantity" min="1" max="5">
+//
+//	<input type="number" name="quantity" min="1" max="5">
 //
 // NOTE: will apply only on: input, meter, progress
 func Max(value int64) Attribute {
@@ -358,7 +358,8 @@ func Max(value int64) Attribute {
 // specifies the maximum number of characters a user can enter
 //
 // example:
-//  <input type="text" name="usrname" maxlength="10">
+//
+//	<input type="text" name="usrname" maxlength="10">
 //
 // NOTE: will apply only on: input, textarea
 func MaxLength(value int64) Attribute {
@@ -371,7 +372,8 @@ func MaxLength(value int64) Attribute {
 // specifies the HTTP method used when submitting the form
 //
 // example:
-//  <input type="text" name="usrname" maxlength="10">
+//
+//	<input type="text" name="usrname" maxlength="10">
 //
 // NOTE: will apply only on form elements
 func Method(value string) Attribute {
@@ -384,7 +386,8 @@ func Method(value string) Attribute {
 // specifies the minimum value for this element
 //
 // example:
-//  <input type="number" name="quantity" min="1" max="5">
+//
+//	<input type="number" name="quantity" min="1" max="5">
 //
 // NOTE: will apply only on: input, meter, progress
 func Min(value int64) Attribute {
@@ -397,7 +400,8 @@ func Min(value int64) Attribute {
 // specifies the minimum number of characters a user can enter
 //
 // example:
-//  <input type="text" name="usrname" maxlength="10">
+//
+//	<input type="text" name="usrname" maxlength="10">
 //
 // NOTE: will apply only on: input, textarea
 func MinLength(value int64) Attribute {
@@ -410,7 +414,8 @@ func MinLength(value int64) Attribute {
 // specifies the name of the element
 //
 // example:
-//  <button name="subject">HTML</button>
+//
+//	<button name="subject">HTML</button>
 //
 // NOTE: will apply only on: button, fieldset, form, iframe, input,
 // map, meta, object, output, param, select, textarea
@@ -424,7 +429,8 @@ func Name(value string) Attribute {
 // specifies the regular expression that the element is checked against
 //
 // example:
-//  <input type="text" pattern="[^@\s]+@[^@\s]+">
+//
+//	<input type="text" pattern="[^@\s]+@[^@\s]+">
 //
 // NOTE: will apply only on input elements
 func Pattern(value string) Attribute {
@@ -437,7 +443,8 @@ func Pattern(value string) Attribute {
 // specifies a hint that describes the expected value
 //
 // example:
-//  <input type="text" name="username" placeholder="Your Name">
+//
+//	<input type="text" name="username" placeholder="Your Name">
 func Placeholder(v ...any) Attribute {
 	return Attribute{
 		Name:  "Placeholder",
@@ -448,7 +455,8 @@ func Placeholder(v ...any) Attribute {
 // specifies the image to display before the user plays the video
 //
 // example:
-//  <video controls src="movie.mp4" poster="/images/w3html5.gif" />
+//
+//	<video controls src="movie.mp4" poster="/images/w3html5.gif" />
 //
 // NOTE: will apply only on video elements
 func Poster(value string) Attribute {
@@ -461,7 +469,8 @@ func Poster(value string) Attribute {
 // specifies how the author will think how the media should be loaded
 //
 // example:
-//  <audio controls preload="none">
+//
+//	<audio controls preload="none">
 //
 // NOTE: will apply only on: video, audio
 func Preload(value string) Attribute {
@@ -474,7 +483,8 @@ func Preload(value string) Attribute {
 // specifies the relationship between the current and target documents
 //
 // example:
-//   <a rel="nofollow" href="https://go.dev/">Golang is light</a>
+//
+//	<a rel="nofollow" href="https://go.dev/">Golang is light</a>
 //
 // NOTE: will apply only on: a, area, link, form
 func Rel(value string) Attribute {
@@ -487,7 +497,8 @@ func Rel(value string) Attribute {
 // defines a role for an element. This role provides information about the type of widget being created
 //
 // example:
-//  <div role="navigation">...</div>
+//
+//	<div role="navigation">...</div>
 //
 // NOTE: Applies to every element
 func Role(value string) Attribute {
@@ -500,7 +511,8 @@ func Role(value string) Attribute {
 // specifies the number of rows in a text area
 //
 // example:
-//  <textarea rows="4">...</textarea>
+//
+//	<textarea rows="4">...</textarea>
 //
 // NOTE: Applies only to textarea elements
 func Rows(value int64) Attribute {
@@ -513,7 +525,8 @@ func Rows(value int64) Attribute {
 // specifies the number of rows a cell should span
 //
 // example:
-//  <td rowspan="2">...</td>
+//
+//	<td rowspan="2">...</td>
 //
 // NOTE: Applies to td and th elements
 func RowSpan(value int64) Attribute {
@@ -526,7 +539,8 @@ func RowSpan(value int64) Attribute {
 // epecifies the source URL for an image
 //
 // example:
-//  <img src="image.jpg">
+//
+//	<img src="image.jpg">
 //
 // NOTE: Applies only to img elements
 func Src(value string) Attribute {
@@ -539,7 +553,8 @@ func Src(value string) Attribute {
 // specifies one or more sources for an image
 //
 // example:
-//  <img srcset="image-320w.jpg  320w, image-480w.jpg  480w">
+//
+//	<img srcset="image-320w.jpg  320w, image-480w.jpg  480w">
 //
 // NOTE: Applies only to img elements
 func SrcSet(value string) Attribute {
@@ -552,7 +567,8 @@ func SrcSet(value string) Attribute {
 // specifies the legal number intervals for an input field
 //
 // example:
-//  <input type="number" step="2">
+//
+//	<input type="number" step="2">
 //
 // NOTE: Applies only to input elements with type="number"
 func Step(value float64) Attribute {
@@ -565,7 +581,8 @@ func Step(value float64) Attribute {
 // specifies inline CSS styles for an element
 //
 // example:
-//  <div style="color: blue;">...</div>
+//
+//	<div style="color: blue;">...</div>
 //
 // NOTE: Applies to every element
 func Style(v ...any) Attribute {
@@ -578,7 +595,8 @@ func Style(v ...any) Attribute {
 // specifies the tab order of an element
 //
 // example:
-//  <input type="text" tabindex="1">
+//
+//	<input type="text" tabindex="1">
 //
 // NOTE: applies to every element
 func TabIndex(value int64) Attribute {
@@ -591,7 +609,8 @@ func TabIndex(value int64) Attribute {
 // specifies where to open the linked document
 //
 // example:
-//  <a href="https://example.com" target="_blank">...</a>
+//
+//	<a href="https://example.com" target="_blank">...</a>
 //
 // NOTE: Applies to a and area elements
 func Target(value string) Attribute {
@@ -604,7 +623,8 @@ func Target(value string) Attribute {
 // provides advisory information about the element
 //
 // example:
-//  <abbr title="Hypertext Markup Language">HTML</abbr>
+//
+//	<abbr title="Hypertext Markup Language">HTML</abbr>
 //
 // NOTE: Applies to every element
 func Title(v ...any) Attribute {
@@ -617,7 +637,8 @@ func Title(v ...any) Attribute {
 // specifies the type of input element
 //
 // example:
-//  <input type="text">
+//
+//	<input type="text">
 //
 // NOTE: Applies to input elements
 func Type(value string) Attribute {
@@ -630,7 +651,8 @@ func Type(value string) Attribute {
 // specifies the initial value for an input field
 //
 // example:
-//  <input type="text" value="Default">
+//
+//	<input type="text" value="Default">
 //
 // NOTE: Applies to input, textarea, and select elements
 func Value(v ...any) Attribute {
@@ -643,7 +665,8 @@ func Value(v ...any) Attribute {
 // specifies the width of an element.
 //
 // example:
-//  <div style="width:  200px;">...</div>
+//
+//	<div style="width:  200px;">...</div>
 //
 // NOTE: Applies to every element
 func Width(value int64) Attribute {
@@ -656,7 +679,8 @@ func Width(value int64) Attribute {
 // specifies how the form-data should be encoded when submitting it to the server
 //
 // example:
-//  <form enctype="multipart/form-data">...</form>
+//
+//	<form enctype="multipart/form-data">...</form>
 //
 // NOTE: Applies to form elements
 func EncType(value string) Attribute {
