@@ -19,7 +19,14 @@ func setField(
 	fieldName string,
 	value interface{},
 ) error {
-	val := reflect.ValueOf(element).Elem()
+	val := reflect.ValueOf(element)
+
+	if val.Kind() != reflect.Ptr {
+		val = reflect.ValueOf(&element).Elem()
+
+	} else {
+		val = val.Elem()
+	}
 
 	fieldVal := val.FieldByName(fieldName)
 
@@ -29,16 +36,18 @@ func setField(
 
 	// Assuming BasicElement is a struct field, not an interface or pointer
 	basicElVal := val.FieldByName("BasicElement")
-	if !basicElVal.IsValid() {
-		return fmt.Errorf("cannot found BasicElement on %v", reflect.TypeOf(element))
+
+	if !basicElVal.IsValid() || !basicElVal.CanSet() {
+		return fmt.Errorf("cannot found or set BasicElement on %v", reflect.TypeOf(element))
 	}
 
 	fieldVal = basicElVal.FieldByName(fieldName)
+	fmt.Println(fieldVal, fieldVal.IsValid(), fieldVal.CanSet())
 	if fieldVal.IsValid() && fieldVal.CanSet() {
 		return setValue(fieldVal, value)
 	}
 
-	return fmt.Errorf("cannot found %s", fieldName)
+	return fmt.Errorf("cannot found or set %s", fieldName)
 }
 
 func setValue(
@@ -51,21 +60,25 @@ func setValue(
 			fieldVal.SetString(v)
 			return nil
 		}
+
 	case reflect.Bool:
 		if v, ok := value.(bool); ok {
 			fieldVal.SetBool(v)
 			return nil
 		}
+
 	case reflect.Int64:
 		if v, ok := value.(int64); ok {
 			fieldVal.SetInt(v)
 			return nil
 		}
+
 	case reflect.Func:
 		if v, ok := value.(EventHandler); ok {
 			fieldVal.Set(reflect.ValueOf(v))
 			return nil
 		}
+
 	default:
 		return fmt.Errorf("wrong value type for the field")
 	}

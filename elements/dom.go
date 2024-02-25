@@ -14,6 +14,7 @@ import (
 // represents the standard and minimum required DOM element
 type Element interface {
 	GetChilds() []Element
+	AppendChild(Element)
 	GetElName() string
 	// and so every dom element property
 	DOMElement
@@ -39,7 +40,7 @@ type DOMElement interface {
 	GetTitle() string
 }
 
-// BasicElement represents every attributes of a standard
+// BasicElement represents every attributes of a global
 // D.O.M. element and will be used in every element.
 //
 // NOTE: this will implement the DOMElement interface
@@ -128,6 +129,19 @@ func Build(element Element) js.Func {
 				// in parent element and we don't spawn a new element
 				return parent
 
+			case EmptyEl:
+				return parent
+
+			case SliceEl:
+				// here we don't want to create and append to the dom
+				// a slice element, just append childs to parent, so:
+				// loop over each child element and create the tree
+				for _, child := range el.GetChilds() {
+					buildElement(child, parent)
+				}
+
+				return parent
+
 			default:
 				elementMap := fieldsToMap(el)
 				fmt.Println(elementMap, el.GetElName(), el.GetChilds())
@@ -175,6 +189,9 @@ func Build(element Element) js.Func {
 
 		// runtime loaded function
 		js.Global().Call("loaded")
+
+		// runtime start the state manager
+		js.Global().Call("stateManagerStart")
 
 		return nil
 	})

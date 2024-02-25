@@ -3,47 +3,64 @@ package runtime
 import (
 	"syscall/js"
 
-	"github.com/4lxprime/agit/elements"
+	"github.com/4lxprime/gtml"
+	"github.com/4lxprime/gtml/elements"
 )
 
-// func compile(output string) error {
-// 	cmd := exec.Command("go", "build", "-o", output, "runtime/runtime.go")
-
-// 	cmd.Env = append(cmd.Env, "GOOS=js")
-// 	cmd.Env = append(cmd.Env, "GOARCH=wasm")
-
-// 	if err := cmd.Run(); err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }
-
-func UseState(value any) chan any {
-	datach := make(chan any)
-
-	datach <- value
-
-	return datach
+func SetFunc(name string, fn func()) {
+	js.Global().Set(
+		name,
+		js.FuncOf(
+			func(this js.Value, args []js.Value) interface{} {
+				fn()
+				return nil
+			},
+		),
+	)
 }
 
-func Runtime(appElement elements.Element) {
+// todo: test this one
+func CallFunc(name string, args ...interface{}) js.Value {
+	jsFunc := js.Global().Get(name)
+	return jsFunc.Invoke(args...)
+}
+
+func Runtime(appElement *gtml.App) {
+	// ---------------- Runtime Events ---->
+
 	stopch := make(chan struct{})
 	loadch := make(chan struct{})
 
 	// javascript stop function, should be called by the wasm page
-	js.Global().Set("stop", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+	SetFunc("stop", func() {
 		close(stopch)
-		return nil
-	}))
+	})
 
 	// javascript end loading function, should be called by the wasm page
-	js.Global().Set("loaded", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+	SetFunc("loaded", func() {
 		close(loadch)
-		return nil
-	}))
+	})
 
-	js.Global().Set("app", elements.Build(appElement))
+	// ---------------- App ---->
+
+	js.Global().Set(
+		"app",
+		elements.Build(
+			appElement.Element,
+		),
+	)
+
+	// ---------------- State Manager ---->
+
+	// state manager start function
+	SetFunc("stateManagerStart", func() {
+		go appElement.StateManager.Start()
+	})
+	// state manager stop function
+	SetFunc("stateManagerStop", func() {
+		appElement.StateManager.Stop()
+	})
 
 	<-stopch
+	js.Global().Call("stateManagerStop")
 }
