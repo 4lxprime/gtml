@@ -129,6 +129,19 @@ func Build(element Element) js.Func {
 				// in parent element and we don't spawn a new element
 				return parent
 
+			case EmptyEl:
+				return parent
+
+			case SliceEl:
+				// here we don't want to create and append to the dom
+				// a slice element, just append childs to parent, so:
+				// loop over each child element and create the tree
+				for _, child := range el.GetChilds() {
+					buildElement(child, parent)
+				}
+
+				return parent
+
 			default:
 				elementMap := fieldsToMap(el)
 				fmt.Println(elementMap, el.GetElName(), el.GetChilds())

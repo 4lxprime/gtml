@@ -1,29 +1,44 @@
 # GTML (GolangText Markup Language)
  golang reactive component frontend framwork using wasm
  ```golang
-func App() Element {
-	padding := 20
+func App(app *gtml.App) *gtml.App {
+	return app.Use(
+		Div(
+			Style(
+				"background-color: cyan;",
+				"padding: 10px;",
+			),
+		)(
+			gtml.If(1 == 3)(
+				Text("ok ... but there is maybe a bug"),
+			).Elif(3 == 3)(
+				Text("welcome!"),
+			).Value(),
 
-	return Div(
-		Style(
-			"background-color: cyan;",
-			"padding: 10px;",
-		),
-	)(
-		HeaderCmp("AGIT Wasm"),
-		P(
-			Style("color: blue;"),
-		)(
-			Text("Click on the button:"),
-		),
-		Button(
-			Style(fmt.Sprintf("padding: %dpx;", padding)),
-			OnClick(func() {
-				fmt.Println("button get clicked")
-				padding++
-			}),
-		)(
-			Text("Hello World!"),
+			gtml.Each([]string{"fast", "simple", "the best language"})(
+				func(i int, a any) Element {
+					return P()(
+						Textf("golang is %s", a.(string)),
+					)
+				},
+			),
+
+			P(
+				Style("color: blue;"),
+			)(
+				Text("Click on the button:"),
+			),
+			Button(
+				Style(
+					"padding: 10px;",
+					"color: red;",
+				),
+				OnClick(func() {
+					fmt.Println("button get clicked!")
+				}),
+			)(
+				Text("Hello World!"),
+			),
 		),
 	)
 }

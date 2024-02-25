@@ -9,49 +9,7 @@ import (
 )
 
 func HeaderCmp(title string) Element {
-	return Div(
-		Style(
-			"position: absolute;",
-			"top: 0; left: 0;",
-			"margin-bottom: 10px;",
-		),
-	)(
-		Div(
-			Style("float: left;"),
-		)(
-			P(
-				Style(
-					"font-size: 100px;",
-					"font-weight: bold;",
-				),
-				OnMouseOver(func() {
-					fmt.Println("someone hover the logo")
-				}),
-			)(
-				Text(title),
-			),
-		),
-		Div(
-			Style("float: right;"),
-		)(
-			Input(
-				Type("text"),
-				Placeholder("This must be cool"),
-				Required,
-			)(),
-			Button(
-				Style(
-					"padding: 5px; margin: 5px;",
-					"background-color: blue;",
-				),
-				OnClick(func() {
-					fmt.Println("Login!!")
-				}),
-			)(
-				Text("Login"),
-			),
-		),
-	)
+	return Div()()
 }
 
 func App(app *gtml.App) *gtml.App {
@@ -64,14 +22,40 @@ func App(app *gtml.App) *gtml.App {
 				"padding: 10px;",
 			),
 		)(
-			HeaderCmp("AGIT Wasm"),
+			gtml.If(1 == 3)(
+				Text("mmmmmhh"),
+			).Elif(3 == 3)(
+				Text("super cool"),
+			).Value(),
+
+			gtml.For(0, 4)(
+				func(i int) Element {
+					return HeaderCmp(fmt.Sprintf("AGIT Wasm %d", i))
+				},
+			),
+
+			gtml.Each([]string{"test", "Super test"})(
+				func(i int, a any) Element {
+					return P()(
+						Text(a.(string)),
+					)
+				},
+			),
+
 			P(
 				Style("color: blue;"),
 			)(
 				Text("Click on the button:"),
 			),
 			Button(
-				Style(fmt.Sprintf("padding: %vpx;", paddingState.Get())),
+				Style(
+					fmt.Sprintf(
+						"padding: %vpx;",
+						paddingState.Get(),
+					),
+					"margin: 5px;",
+					"color: red;",
+				),
 				OnClick(func() {
 					fmt.Println("button get clicked")
 					paddingState.Set(paddingState.Get().(int) + 1)

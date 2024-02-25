@@ -11,23 +11,9 @@ func elementImpl(
 	el interface{},
 	attributes []Attribute,
 ) func(elements ...Element) Element {
-	// yeah, i know this is horrible but i don't have the choice
-	switch elem := el.(type) {
-	case AEl, AbbrEl, AddressEl, ArticleEl, AsideEl, AudioEl, BaseEl, BdiEl, BdoEl, BlockquoteEl,
-		BrEl, ButtonEl, CanvasEl, CaptionEl, CiteEl, CodeEl, ColEl, ColgroupEl, DatalistEl, DdEl, DelEl,
-		DetailsEl, DfnEl, DialogEl, DivEl, DlEl, DtEl, EmEl, EmbedEl, FieldsetEl, FigcaptionEl, FigureEl,
-		FooterEl, FormEl, H1El, H2El, H3El, H4El, H5El, H6El, HeaderEl, HrEl, IEl, IframeEl, ImgEl,
-		InputEl, InsEl, KbdEl, LabelEl, LegendEl, LiEl, LinkEl, MainEl, MapEl, MarkEl, MenuEl, MenuItemEl,
-		MeterEl, NavEl, ObjectEl, OlEl, OptGroupEl, OptionEl, OutputEl, PEl, ParamEl, PictureEl, PreEl,
-		ProgressEl, QEl, RpEl, RtEl, RubyEl, SEl, SampEl, SectionEl, SelectEl, SmallEl, SourceEl, SpanEl,
-		StrongEl, SubEl, SummaryEl, SupEl, TBodyEl, TFootEl, TableEl, TdEl, TextEl, TextareaEl, ThEl,
-		TheadEl, TimeEl, TrEl, TrackEl, UEl, UlEl, VarEl, VideoEl, WbrEl:
-
-		// this will with reflection add the attribute to the good struct
-		for _, attribute := range attributes {
-			if err := setField(elem, attribute.Name, attribute.Value); err != nil {
-				log.Println(err)
-			}
+	for _, attribute := range attributes {
+		if err := setField(el, attribute.Name, attribute.Value); err != nil {
+			log.Println(err)
 		}
 	}
 
@@ -47,13 +33,39 @@ func elementAutoCloseImpl(
 ) Element {
 	// this will with reflection add the attribute to the good struct
 	for _, attribute := range attributes {
-		if err := setField(&el, attribute.Name, attribute.Value); err != nil {
+		if err := setField(el, attribute.Name, attribute.Value); err != nil {
 			log.Println(err)
 		}
 	}
 
 	return el
 }
+
+// ---------------- Custom Elements ----->
+
+// custom element that should be used in conditions
+type EmptyEl struct {
+	BasicElement
+	elName string
+}
+
+func (e EmptyEl) GetChilds() []Element   { return []Element{} }
+func (e EmptyEl) AppendChild(el Element) {}
+func (e EmptyEl) GetElName() string      { return e.elName }
+
+// empty value, will not be rendered in the DOM
+var None = EmptyEl{
+	elName: "none",
+}
+
+type SliceEl struct {
+	BasicElement
+	childs []Element
+}
+
+func (e SliceEl) GetChilds() []Element   { return e.childs }
+func (e SliceEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e SliceEl) GetElName() string      { return "slice" }
 
 // this element is just an implementation of raw text
 // and should not have neither children nor attributes
@@ -83,8 +95,9 @@ func Textf(format string, a ...any) TextEl {
 	return el
 }
 
+// ---------------- Standard Elements ----->
 // folowing elements struct are maybe wrong or not correcly implemented
-// because i don't wanted to waste days looking for elements attributes
+// because i don't wanted to waste days looking for every elements attributes
 // and specifications, so thanks GPT
 
 type AEl struct {

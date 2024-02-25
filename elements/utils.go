@@ -20,13 +20,12 @@ func setField(
 	value interface{},
 ) error {
 	val := reflect.ValueOf(element)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
 
-	fmt.Println(val.Kind())
-	if val.Kind() != reflect.Struct {
-		return fmt.Errorf("element must be a struct or a pointer to a struct")
+	if val.Kind() != reflect.Ptr {
+		val = reflect.ValueOf(&element).Elem()
+
+	} else {
+		val = val.Elem()
 	}
 
 	fieldVal := val.FieldByName(fieldName)

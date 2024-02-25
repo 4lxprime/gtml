@@ -7,7 +7,7 @@ import (
 	"github.com/4lxprime/gtml/elements"
 )
 
-func setFunc(name string, fn func()) {
+func SetFunc(name string, fn func()) {
 	js.Global().Set(
 		name,
 		js.FuncOf(
@@ -19,6 +19,12 @@ func setFunc(name string, fn func()) {
 	)
 }
 
+// todo: test this one
+func CallFunc(name string, args ...interface{}) js.Value {
+	jsFunc := js.Global().Get(name)
+	return jsFunc.Invoke(args...)
+}
+
 func Runtime(appElement *gtml.App) {
 	// ---------------- Runtime Events ---->
 
@@ -26,12 +32,12 @@ func Runtime(appElement *gtml.App) {
 	loadch := make(chan struct{})
 
 	// javascript stop function, should be called by the wasm page
-	setFunc("stop", func() {
+	SetFunc("stop", func() {
 		close(stopch)
 	})
 
 	// javascript end loading function, should be called by the wasm page
-	setFunc("loaded", func() {
+	SetFunc("loaded", func() {
 		close(loadch)
 	})
 
@@ -47,11 +53,11 @@ func Runtime(appElement *gtml.App) {
 	// ---------------- State Manager ---->
 
 	// state manager start function
-	setFunc("stateManagerStart", func() {
+	SetFunc("stateManagerStart", func() {
 		go appElement.StateManager.Start()
 	})
 	// state manager stop function
-	setFunc("stateManagerStop", func() {
+	SetFunc("stateManagerStop", func() {
 		appElement.StateManager.Stop()
 	})
 

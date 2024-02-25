@@ -9,7 +9,7 @@ import (
 //
 // NOTE: id is used by the state manager in the runtime
 // and when something is pushed through the channel,
-// this data will be placed on value
+// this data will be placed on value field
 type State struct {
 	id      int64
 	channel chan interface{}
