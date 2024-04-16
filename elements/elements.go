@@ -12,7 +12,7 @@ func elementImpl(
 	attributes []Attribute,
 ) func(elements ...Element) Element {
 	for _, attribute := range attributes {
-		if err := setField(el, attribute.Name, attribute.Value); err != nil {
+		if err := setFieldValue(el, attribute.Name, attribute.Value); err != nil {
 			log.Println(err)
 		}
 	}
@@ -33,7 +33,7 @@ func elementAutoCloseImpl(
 ) Element {
 	// this will with reflection add the attribute to the good struct
 	for _, attribute := range attributes {
-		if err := setField(el, attribute.Name, attribute.Value); err != nil {
+		if err := setFieldValue(el, attribute.Name, attribute.Value); err != nil {
 			log.Println(err)
 		}
 	}
@@ -49,13 +49,30 @@ type EmptyEl struct {
 	elName string
 }
 
-func (e EmptyEl) GetChilds() []Element   { return []Element{} }
-func (e EmptyEl) AppendChild(el Element) {}
-func (e EmptyEl) GetElName() string      { return e.elName }
+func (e *EmptyEl) GetChilds() []Element   { return []Element{} }
+func (e *EmptyEl) AppendChild(el Element) {}
+func (e *EmptyEl) GetElName() string      { return e.elName }
 
 // empty value, will not be rendered in the DOM
 var None = EmptyEl{
 	elName: "none",
+}
+
+// todo: impl this at compile time
+type CustomEl[T interface{}] struct {
+	BasicElement
+	childs []Element
+	elName string
+	Custom T
+}
+
+func (e *CustomEl[T]) GetChilds() []Element   { return e.childs }
+func (e *CustomEl[T]) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *CustomEl[T]) GetElName() string      { return e.elName }
+
+func CustomElem[T interface{}](name string, attributes ...Attribute) func(...Element) Element {
+	el := &CustomEl[T]{elName: name}
+	return elementImpl(el, attributes)
 }
 
 type SliceEl struct {
@@ -63,9 +80,9 @@ type SliceEl struct {
 	childs []Element
 }
 
-func (e SliceEl) GetChilds() []Element   { return e.childs }
-func (e SliceEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e SliceEl) GetElName() string      { return "slice" }
+func (e *SliceEl) GetChilds() []Element   { return e.childs }
+func (e *SliceEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *SliceEl) GetElName() string      { return "slice" }
 
 // this element is just an implementation of raw text
 // and should not have neither children nor attributes
@@ -75,20 +92,20 @@ type TextEl struct {
 	elName    string
 }
 
-func (e TextEl) GetChilds() []Element   { return []Element{} }
-func (e TextEl) AppendChild(el Element) {}
-func (e TextEl) GetElName() string      { return e.elName }
+func (e *TextEl) GetChilds() []Element   { return []Element{} }
+func (e *TextEl) AppendChild(el Element) {}
+func (e *TextEl) GetElName() string      { return e.elName }
 
-func Text(text string) TextEl {
-	el := TextEl{elName: "rawtext"}
+func Text(text string) *TextEl {
+	el := &TextEl{elName: "rawtext"}
 
 	el.InnerText = text
 
 	return el
 }
 
-func Textf(format string, a ...any) TextEl {
-	el := TextEl{elName: "rawtext"}
+func Textf(format string, a ...any) *TextEl {
+	el := &TextEl{elName: "rawtext"}
 
 	el.InnerText = fmt.Sprintf(format, a...)
 
@@ -99,6 +116,7 @@ func Textf(format string, a ...any) TextEl {
 // folowing elements struct are maybe wrong or not correcly implemented
 // because i don't wanted to waste days looking for every elements attributes
 // and specifications, so thanks GPT
+// ----------------------------------------
 
 type AEl struct {
 	BasicElement
@@ -108,12 +126,12 @@ type AEl struct {
 	elName string
 }
 
-func (e AEl) GetChilds() []Element   { return e.childs }
-func (e AEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e AEl) GetElName() string      { return e.elName }
+func (e *AEl) GetChilds() []Element   { return e.childs }
+func (e *AEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *AEl) GetElName() string      { return e.elName }
 
 func A(attributes ...Attribute) func(...Element) Element {
-	el := AEl{elName: "a"}
+	el := &AEl{elName: "a"}
 	return elementImpl(el, attributes)
 }
 
@@ -124,12 +142,12 @@ type AbbrEl struct {
 	elName string
 }
 
-func (e AbbrEl) GetChilds() []Element   { return e.childs }
-func (e AbbrEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e AbbrEl) GetElName() string      { return e.elName }
+func (e *AbbrEl) GetChilds() []Element   { return e.childs }
+func (e *AbbrEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *AbbrEl) GetElName() string      { return e.elName }
 
 func Abbr(attributes ...Attribute) func(...Element) Element {
-	el := AbbrEl{elName: "abbr"}
+	el := &AbbrEl{elName: "abbr"}
 	return elementImpl(el, attributes)
 }
 
@@ -139,12 +157,12 @@ type AddressEl struct {
 	elName string
 }
 
-func (e AddressEl) GetChilds() []Element   { return e.childs }
-func (e AddressEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e AddressEl) GetElName() string      { return e.elName }
+func (e *AddressEl) GetChilds() []Element   { return e.childs }
+func (e *AddressEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *AddressEl) GetElName() string      { return e.elName }
 
 func Address(attributes ...Attribute) func(...Element) Element {
-	el := AddressEl{elName: "address"}
+	el := &AddressEl{elName: "address"}
 	return elementImpl(el, attributes)
 }
 
@@ -154,12 +172,12 @@ type ArticleEl struct {
 	elName string
 }
 
-func (e ArticleEl) GetChilds() []Element   { return e.childs }
-func (e ArticleEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e ArticleEl) GetElName() string      { return e.elName }
+func (e *ArticleEl) GetChilds() []Element   { return e.childs }
+func (e *ArticleEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *ArticleEl) GetElName() string      { return e.elName }
 
 func Article(attributes ...Attribute) func(...Element) Element {
-	el := ArticleEl{elName: "article"}
+	el := &ArticleEl{elName: "article"}
 	return elementImpl(el, attributes)
 }
 
@@ -169,12 +187,12 @@ type AsideEl struct {
 	elName string
 }
 
-func (e AsideEl) GetChilds() []Element   { return e.childs }
-func (e AsideEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e AsideEl) GetElName() string      { return e.elName }
+func (e *AsideEl) GetChilds() []Element   { return e.childs }
+func (e *AsideEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *AsideEl) GetElName() string      { return e.elName }
 
 func Aside(attributes ...Attribute) func(...Element) Element {
-	el := AsideEl{elName: "aside"}
+	el := &AsideEl{elName: "aside"}
 	return elementImpl(el, attributes)
 }
 
@@ -186,12 +204,12 @@ type AudioEl struct {
 	elName   string
 }
 
-func (e AudioEl) GetChilds() []Element   { return e.childs }
-func (e AudioEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e AudioEl) GetElName() string      { return e.elName }
+func (e *AudioEl) GetChilds() []Element   { return e.childs }
+func (e *AudioEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *AudioEl) GetElName() string      { return e.elName }
 
 func Audio(attributes ...Attribute) func(...Element) Element {
-	el := AudioEl{elName: "audio"}
+	el := &AudioEl{elName: "audio"}
 	return elementImpl(el, attributes)
 }
 
@@ -202,12 +220,12 @@ type BaseEl struct {
 	elName string
 }
 
-func (e BaseEl) GetChilds() []Element   { return []Element{} }
-func (e BaseEl) AppendChild(el Element) {}
-func (e BaseEl) GetElName() string      { return e.elName }
+func (e *BaseEl) GetChilds() []Element   { return []Element{} }
+func (e *BaseEl) AppendChild(el Element) {}
+func (e *BaseEl) GetElName() string      { return e.elName }
 
 func Base(attributes ...Attribute) Element {
-	el := BaseEl{elName: "base"}
+	el := &BaseEl{elName: "base"}
 	return elementAutoCloseImpl(el, attributes)
 }
 
@@ -217,12 +235,12 @@ type BdiEl struct {
 	elName string
 }
 
-func (e BdiEl) GetChilds() []Element   { return e.childs }
-func (e BdiEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e BdiEl) GetElName() string      { return e.elName }
+func (e *BdiEl) GetChilds() []Element   { return e.childs }
+func (e *BdiEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *BdiEl) GetElName() string      { return e.elName }
 
 func Bdi(attributes ...Attribute) func(...Element) Element {
-	el := BdiEl{elName: "bdi"}
+	el := &BdiEl{elName: "bdi"}
 	return elementImpl(el, attributes)
 }
 
@@ -233,12 +251,12 @@ type BdoEl struct {
 	elName string
 }
 
-func (e BdoEl) GetChilds() []Element   { return e.childs }
-func (e BdoEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e BdoEl) GetElName() string      { return e.elName }
+func (e *BdoEl) GetChilds() []Element   { return e.childs }
+func (e *BdoEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *BdoEl) GetElName() string      { return e.elName }
 
 func Bdo(attributes ...Attribute) func(...Element) Element {
-	el := BdoEl{elName: "bdo"}
+	el := &BdoEl{elName: "bdo"}
 	return elementImpl(el, attributes)
 }
 
@@ -249,12 +267,12 @@ type BlockquoteEl struct {
 	elName string
 }
 
-func (e BlockquoteEl) GetChilds() []Element   { return e.childs }
-func (e BlockquoteEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e BlockquoteEl) GetElName() string      { return e.elName }
+func (e *BlockquoteEl) GetChilds() []Element   { return e.childs }
+func (e *BlockquoteEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *BlockquoteEl) GetElName() string      { return e.elName }
 
 func Blockquote(attributes ...Attribute) func(...Element) Element {
-	el := BlockquoteEl{elName: "blockquote"}
+	el := &BlockquoteEl{elName: "blockquote"}
 	return elementImpl(el, attributes)
 }
 
@@ -263,12 +281,12 @@ type BrEl struct {
 	elName string
 }
 
-func (e BrEl) GetChilds() []Element   { return []Element{} }
-func (e BrEl) AppendChild(el Element) {}
-func (e BrEl) GetElName() string      { return e.elName }
+func (e *BrEl) GetChilds() []Element   { return []Element{} }
+func (e *BrEl) AppendChild(el Element) {}
+func (e *BrEl) GetElName() string      { return e.elName }
 
 func Br(attributes ...Attribute) Element {
-	el := BrEl{elName: "br"}
+	el := &BrEl{elName: "br"}
 	return elementAutoCloseImpl(el, attributes)
 }
 
@@ -280,12 +298,12 @@ type CanvasEl struct {
 	elName string
 }
 
-func (e CanvasEl) GetChilds() []Element   { return e.childs }
-func (e CanvasEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e CanvasEl) GetElName() string      { return e.elName }
+func (e *CanvasEl) GetChilds() []Element   { return e.childs }
+func (e *CanvasEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *CanvasEl) GetElName() string      { return e.elName }
 
 func Canvas(attributes ...Attribute) func(...Element) Element {
-	el := CanvasEl{elName: "canvas"}
+	el := &CanvasEl{elName: "canvas"}
 	return elementImpl(el, attributes)
 }
 
@@ -295,12 +313,12 @@ type CaptionEl struct {
 	elName string
 }
 
-func (e CaptionEl) GetChilds() []Element   { return e.childs }
-func (e CaptionEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e CaptionEl) GetElName() string      { return e.elName }
+func (e *CaptionEl) GetChilds() []Element   { return e.childs }
+func (e *CaptionEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *CaptionEl) GetElName() string      { return e.elName }
 
 func Caption(attributes ...Attribute) func(...Element) Element {
-	el := CaptionEl{elName: "caption"}
+	el := &CaptionEl{elName: "caption"}
 	return elementImpl(el, attributes)
 }
 
@@ -310,12 +328,12 @@ type CiteEl struct {
 	elName string
 }
 
-func (e CiteEl) GetChilds() []Element   { return e.childs }
-func (e CiteEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e CiteEl) GetElName() string      { return e.elName }
+func (e *CiteEl) GetChilds() []Element   { return e.childs }
+func (e *CiteEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *CiteEl) GetElName() string      { return e.elName }
 
 func Cite(attributes ...Attribute) func(...Element) Element {
-	el := CiteEl{elName: "cite"}
+	el := &CiteEl{elName: "cite"}
 	return elementImpl(el, attributes)
 }
 
@@ -325,12 +343,12 @@ type CodeEl struct {
 	elName string
 }
 
-func (e CodeEl) GetChilds() []Element   { return e.childs }
-func (e CodeEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e CodeEl) GetElName() string      { return e.elName }
+func (e *CodeEl) GetChilds() []Element   { return e.childs }
+func (e *CodeEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *CodeEl) GetElName() string      { return e.elName }
 
 func Code(attributes ...Attribute) func(...Element) Element {
-	el := CodeEl{elName: "code"}
+	el := &CodeEl{elName: "code"}
 	return elementImpl(el, attributes)
 }
 
@@ -341,12 +359,12 @@ type ColEl struct {
 	elName string
 }
 
-func (e ColEl) GetChilds() []Element   { return e.childs }
-func (e ColEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e ColEl) GetElName() string      { return e.elName }
+func (e *ColEl) GetChilds() []Element   { return e.childs }
+func (e *ColEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *ColEl) GetElName() string      { return e.elName }
 
 func Col(attributes ...Attribute) func(...Element) Element {
-	el := ColEl{elName: "col"}
+	el := &ColEl{elName: "col"}
 	return elementImpl(el, attributes)
 }
 
@@ -356,12 +374,12 @@ type ColgroupEl struct {
 	elName string
 }
 
-func (e ColgroupEl) GetChilds() []Element   { return e.childs }
-func (e ColgroupEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e ColgroupEl) GetElName() string      { return e.elName }
+func (e *ColgroupEl) GetChilds() []Element   { return e.childs }
+func (e *ColgroupEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *ColgroupEl) GetElName() string      { return e.elName }
 
 func Colgroup(attributes ...Attribute) func(...Element) Element {
-	el := ColgroupEl{elName: "colgroup"}
+	el := &ColgroupEl{elName: "colgroup"}
 	return elementImpl(el, attributes)
 }
 
@@ -371,12 +389,12 @@ type DatalistEl struct {
 	elName string
 }
 
-func (e DatalistEl) GetChilds() []Element   { return e.childs }
-func (e DatalistEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e DatalistEl) GetElName() string      { return e.elName }
+func (e *DatalistEl) GetChilds() []Element   { return e.childs }
+func (e *DatalistEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *DatalistEl) GetElName() string      { return e.elName }
 
 func Datalist(attributes ...Attribute) func(...Element) Element {
-	el := DatalistEl{elName: "datalist"}
+	el := &DatalistEl{elName: "datalist"}
 	return elementImpl(el, attributes)
 }
 
@@ -392,12 +410,12 @@ type DdEl struct {
 	elName string
 }
 
-func (e DdEl) GetChilds() []Element   { return e.childs }
-func (e DdEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e DdEl) GetElName() string      { return e.elName }
+func (e *DdEl) GetChilds() []Element   { return e.childs }
+func (e *DdEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *DdEl) GetElName() string      { return e.elName }
 
 func Dd(attributes ...Attribute) func(...Element) Element {
-	el := DdEl{elName: "dd"}
+	el := &DdEl{elName: "dd"}
 	return elementImpl(el, attributes)
 }
 
@@ -409,12 +427,12 @@ type DelEl struct {
 	elName   string
 }
 
-func (e DelEl) GetChilds() []Element   { return e.childs }
-func (e DelEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e DelEl) GetElName() string      { return e.elName }
+func (e *DelEl) GetChilds() []Element   { return e.childs }
+func (e *DelEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *DelEl) GetElName() string      { return e.elName }
 
 func Del(attributes ...Attribute) func(...Element) Element {
-	el := DelEl{elName: "del"}
+	el := &DelEl{elName: "del"}
 	return elementImpl(el, attributes)
 }
 
@@ -425,12 +443,12 @@ type DetailsEl struct {
 	elName string
 }
 
-func (e DetailsEl) GetChilds() []Element   { return e.childs }
-func (e DetailsEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e DetailsEl) GetElName() string      { return e.elName }
+func (e *DetailsEl) GetChilds() []Element   { return e.childs }
+func (e *DetailsEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *DetailsEl) GetElName() string      { return e.elName }
 
 func Details(attributes ...Attribute) func(...Element) Element {
-	el := DetailsEl{elName: "details"}
+	el := &DetailsEl{elName: "details"}
 	return elementImpl(el, attributes)
 }
 
@@ -441,12 +459,12 @@ type DfnEl struct {
 	elName string
 }
 
-func (e DfnEl) GetChilds() []Element   { return e.childs }
-func (e DfnEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e DfnEl) GetElName() string      { return e.elName }
+func (e *DfnEl) GetChilds() []Element   { return e.childs }
+func (e *DfnEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *DfnEl) GetElName() string      { return e.elName }
 
 func Dfn(attributes ...Attribute) func(...Element) Element {
-	el := DfnEl{elName: "dfn"}
+	el := &DfnEl{elName: "dfn"}
 	return elementImpl(el, attributes)
 }
 
@@ -457,12 +475,12 @@ type DialogEl struct {
 	elName string
 }
 
-func (e DialogEl) GetChilds() []Element   { return e.childs }
-func (e DialogEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e DialogEl) GetElName() string      { return e.elName }
+func (e *DialogEl) GetChilds() []Element   { return e.childs }
+func (e *DialogEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *DialogEl) GetElName() string      { return e.elName }
 
 func Dialog(attributes ...Attribute) func(...Element) Element {
-	el := DialogEl{elName: "dialog"}
+	el := &DialogEl{elName: "dialog"}
 	return elementImpl(el, attributes)
 }
 
@@ -472,12 +490,12 @@ type DlEl struct {
 	elName string
 }
 
-func (e DlEl) GetChilds() []Element   { return e.childs }
-func (e DlEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e DlEl) GetElName() string      { return e.elName }
+func (e *DlEl) GetChilds() []Element   { return e.childs }
+func (e *DlEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *DlEl) GetElName() string      { return e.elName }
 
 func Dl(attributes ...Attribute) func(...Element) Element {
-	el := DlEl{elName: "dl"}
+	el := &DlEl{elName: "dl"}
 	return elementImpl(el, attributes)
 }
 
@@ -487,12 +505,12 @@ type DtEl struct {
 	elName string
 }
 
-func (e DtEl) GetChilds() []Element   { return e.childs }
-func (e DtEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e DtEl) GetElName() string      { return e.elName }
+func (e *DtEl) GetChilds() []Element   { return e.childs }
+func (e *DtEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *DtEl) GetElName() string      { return e.elName }
 
 func Dt(attributes ...Attribute) func(...Element) Element {
-	el := DtEl{elName: "dt"}
+	el := &DtEl{elName: "dt"}
 	return elementImpl(el, attributes)
 }
 
@@ -502,12 +520,12 @@ type EmEl struct {
 	elName string
 }
 
-func (e EmEl) GetChilds() []Element   { return e.childs }
-func (e EmEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e EmEl) GetElName() string      { return e.elName }
+func (e *EmEl) GetChilds() []Element   { return e.childs }
+func (e *EmEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *EmEl) GetElName() string      { return e.elName }
 
 func Em(attributes ...Attribute) func(...Element) Element {
-	el := EmEl{elName: "em"}
+	el := &EmEl{elName: "em"}
 	return elementImpl(el, attributes)
 }
 
@@ -520,12 +538,12 @@ type EmbedEl struct {
 	elName string
 }
 
-func (e EmbedEl) GetChilds() []Element   { return []Element{} }
-func (e EmbedEl) AppendChild(el Element) {}
-func (e EmbedEl) GetElName() string      { return e.elName }
+func (e *EmbedEl) GetChilds() []Element   { return []Element{} }
+func (e *EmbedEl) AppendChild(el Element) {}
+func (e *EmbedEl) GetElName() string      { return e.elName }
 
 func Embed(attributes ...Attribute) func(...Element) Element {
-	el := EmbedEl{elName: "embed"}
+	el := &EmbedEl{elName: "embed"}
 	return elementImpl(el, attributes)
 } // todo
 
@@ -538,12 +556,12 @@ type FieldsetEl struct {
 	elName   string
 }
 
-func (e FieldsetEl) GetChilds() []Element   { return e.childs }
-func (e FieldsetEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e FieldsetEl) GetElName() string      { return e.elName }
+func (e *FieldsetEl) GetChilds() []Element   { return e.childs }
+func (e *FieldsetEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *FieldsetEl) GetElName() string      { return e.elName }
 
 func Fieldset(attributes ...Attribute) func(...Element) Element {
-	el := FieldsetEl{elName: "fieldset"}
+	el := &FieldsetEl{elName: "fieldset"}
 	return elementImpl(el, attributes)
 }
 
@@ -553,12 +571,12 @@ type FigcaptionEl struct {
 	elName string
 }
 
-func (e FigcaptionEl) GetChilds() []Element   { return e.childs }
-func (e FigcaptionEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e FigcaptionEl) GetElName() string      { return e.elName }
+func (e *FigcaptionEl) GetChilds() []Element   { return e.childs }
+func (e *FigcaptionEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *FigcaptionEl) GetElName() string      { return e.elName }
 
 func Figcaption(attributes ...Attribute) func(...Element) Element {
-	el := FigcaptionEl{elName: "figcaption"}
+	el := &FigcaptionEl{elName: "figcaption"}
 	return elementImpl(el, attributes)
 }
 
@@ -568,12 +586,12 @@ type FigureEl struct {
 	elName string
 }
 
-func (e FigureEl) GetChilds() []Element   { return e.childs }
-func (e FigureEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e FigureEl) GetElName() string      { return e.elName }
+func (e *FigureEl) GetChilds() []Element   { return e.childs }
+func (e *FigureEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *FigureEl) GetElName() string      { return e.elName }
 
 func Figure(attributes ...Attribute) func(...Element) Element {
-	el := FigureEl{elName: "figure"}
+	el := &FigureEl{elName: "figure"}
 	return elementImpl(el, attributes)
 }
 
@@ -583,12 +601,12 @@ type FooterEl struct {
 	elName string
 }
 
-func (e FooterEl) GetChilds() []Element   { return e.childs }
-func (e FooterEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e FooterEl) GetElName() string      { return e.elName }
+func (e *FooterEl) GetChilds() []Element   { return e.childs }
+func (e *FooterEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *FooterEl) GetElName() string      { return e.elName }
 
 func Footer(attributes ...Attribute) func(...Element) Element {
-	el := FooterEl{elName: "footer"}
+	el := &FooterEl{elName: "footer"}
 	return elementImpl(el, attributes)
 }
 
@@ -604,12 +622,12 @@ type FormEl struct {
 	elName       string
 }
 
-func (e FormEl) GetChilds() []Element   { return e.childs }
-func (e FormEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e FormEl) GetElName() string      { return e.elName }
+func (e *FormEl) GetChilds() []Element   { return e.childs }
+func (e *FormEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *FormEl) GetElName() string      { return e.elName }
 
 func Form(attributes ...Attribute) func(...Element) Element {
-	el := FormEl{elName: "form"}
+	el := &FormEl{elName: "form"}
 	return elementImpl(el, attributes)
 }
 
@@ -619,12 +637,12 @@ type H1El struct {
 	elName string
 }
 
-func (e H1El) GetChilds() []Element   { return e.childs }
-func (e H1El) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e H1El) GetElName() string      { return e.elName }
+func (e *H1El) GetChilds() []Element   { return e.childs }
+func (e *H1El) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *H1El) GetElName() string      { return e.elName }
 
 func H1(attributes ...Attribute) func(...Element) Element {
-	el := H1El{elName: "h1"}
+	el := &H1El{elName: "h1"}
 	return elementImpl(el, attributes)
 }
 
@@ -634,12 +652,12 @@ type H2El struct {
 	elName string
 }
 
-func (e H2El) GetChilds() []Element   { return e.childs }
-func (e H2El) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e H2El) GetElName() string      { return e.elName }
+func (e *H2El) GetChilds() []Element   { return e.childs }
+func (e *H2El) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *H2El) GetElName() string      { return e.elName }
 
 func H2(attributes ...Attribute) func(...Element) Element {
-	el := H2El{elName: "h2"}
+	el := &H2El{elName: "h2"}
 	return elementImpl(el, attributes)
 }
 
@@ -649,12 +667,12 @@ type H3El struct {
 	elName string
 }
 
-func (e H3El) GetChilds() []Element   { return e.childs }
-func (e H3El) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e H3El) GetElName() string      { return e.elName }
+func (e *H3El) GetChilds() []Element   { return e.childs }
+func (e *H3El) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *H3El) GetElName() string      { return e.elName }
 
 func H3(attributes ...Attribute) func(...Element) Element {
-	el := H3El{elName: "h3"}
+	el := &H3El{elName: "h3"}
 	return elementImpl(el, attributes)
 }
 
@@ -664,12 +682,12 @@ type H4El struct {
 	elName string
 }
 
-func (e H4El) GetChilds() []Element   { return e.childs }
-func (e H4El) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e H4El) GetElName() string      { return e.elName }
+func (e *H4El) GetChilds() []Element   { return e.childs }
+func (e *H4El) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *H4El) GetElName() string      { return e.elName }
 
 func H4(attributes ...Attribute) func(...Element) Element {
-	el := H4El{elName: "h4"}
+	el := &H4El{elName: "h4"}
 	return elementImpl(el, attributes)
 }
 
@@ -679,12 +697,12 @@ type H5El struct {
 	elName string
 }
 
-func (e H5El) GetChilds() []Element   { return e.childs }
-func (e H5El) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e H5El) GetElName() string      { return e.elName }
+func (e *H5El) GetChilds() []Element   { return e.childs }
+func (e *H5El) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *H5El) GetElName() string      { return e.elName }
 
 func H5(attributes ...Attribute) func(...Element) Element {
-	el := H5El{elName: "h5"}
+	el := &H5El{elName: "h5"}
 	return elementImpl(el, attributes)
 }
 
@@ -694,12 +712,12 @@ type H6El struct {
 	elName string
 }
 
-func (e H6El) GetChilds() []Element   { return e.childs }
-func (e H6El) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e H6El) GetElName() string      { return e.elName }
+func (e *H6El) GetChilds() []Element   { return e.childs }
+func (e *H6El) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *H6El) GetElName() string      { return e.elName }
 
 func H6(attributes ...Attribute) func(...Element) Element {
-	el := H6El{elName: "h6"}
+	el := &H6El{elName: "h6"}
 	return elementImpl(el, attributes)
 }
 
@@ -708,12 +726,12 @@ type HrEl struct {
 	elName string
 }
 
-func (e HrEl) GetChilds() []Element   { return []Element{} }
-func (e HrEl) AppendChild(el Element) {}
-func (e HrEl) GetElName() string      { return e.elName }
+func (e *HrEl) GetChilds() []Element   { return []Element{} }
+func (e *HrEl) AppendChild(el Element) {}
+func (e *HrEl) GetElName() string      { return e.elName }
 
 func Hr(attributes ...Attribute) func(...Element) Element {
-	el := HrEl{elName: "hr"}
+	el := &HrEl{elName: "hr"}
 	return elementImpl(el, attributes)
 } // todo
 
@@ -723,12 +741,12 @@ type IEl struct {
 	elName string
 }
 
-func (e IEl) GetChilds() []Element   { return e.childs }
-func (e IEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e IEl) GetElName() string      { return e.elName }
+func (e *IEl) GetChilds() []Element   { return e.childs }
+func (e *IEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *IEl) GetElName() string      { return e.elName }
 
 func I(attributes ...Attribute) func(...Element) Element {
-	el := IEl{elName: "i"}
+	el := &IEl{elName: "i"}
 	return elementImpl(el, attributes)
 }
 
@@ -746,12 +764,12 @@ type IframeEl struct {
 	elName              string
 }
 
-func (e IframeEl) GetChilds() []Element   { return []Element{} }
-func (e IframeEl) AppendChild(el Element) {}
-func (e IframeEl) GetElName() string      { return e.elName }
+func (e *IframeEl) GetChilds() []Element   { return []Element{} }
+func (e *IframeEl) AppendChild(el Element) {}
+func (e *IframeEl) GetElName() string      { return e.elName }
 
 func Iframe(attributes ...Attribute) func(...Element) Element {
-	el := IframeEl{elName: "iframe"}
+	el := &IframeEl{elName: "iframe"}
 	return elementImpl(el, attributes)
 } // todo
 
@@ -770,12 +788,12 @@ type ImgEl struct {
 	elName      string
 }
 
-func (e ImgEl) GetChilds() []Element   { return []Element{} }
-func (e ImgEl) AppendChild(el Element) {}
-func (e ImgEl) GetElName() string      { return e.elName }
+func (e *ImgEl) GetChilds() []Element   { return []Element{} }
+func (e *ImgEl) AppendChild(el Element) {}
+func (e *ImgEl) GetElName() string      { return e.elName }
 
 func Img(attributes ...Attribute) func(...Element) Element {
-	el := ImgEl{elName: "img"}
+	el := &ImgEl{elName: "img"}
 	return elementImpl(el, attributes)
 } // todo
 
@@ -787,12 +805,12 @@ type InsEl struct {
 	elName   string
 }
 
-func (e InsEl) GetChilds() []Element   { return e.childs }
-func (e InsEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e InsEl) GetElName() string      { return e.elName }
+func (e *InsEl) GetChilds() []Element   { return e.childs }
+func (e *InsEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *InsEl) GetElName() string      { return e.elName }
 
 func Ins(attributes ...Attribute) func(...Element) Element {
-	el := InsEl{elName: "ins"}
+	el := &InsEl{elName: "ins"}
 	return elementImpl(el, attributes)
 }
 
@@ -802,12 +820,12 @@ type KbdEl struct {
 	elName string
 }
 
-func (e KbdEl) GetChilds() []Element   { return e.childs }
-func (e KbdEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e KbdEl) GetElName() string      { return e.elName }
+func (e *KbdEl) GetChilds() []Element   { return e.childs }
+func (e *KbdEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *KbdEl) GetElName() string      { return e.elName }
 
 func Kbd(attributes ...Attribute) func(...Element) Element {
-	el := KbdEl{elName: "kbd"}
+	el := &KbdEl{elName: "kbd"}
 	return elementImpl(el, attributes)
 }
 
@@ -817,12 +835,12 @@ type LegendEl struct {
 	elName string
 }
 
-func (e LegendEl) GetChilds() []Element   { return e.childs }
-func (e LegendEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e LegendEl) GetElName() string      { return e.elName }
+func (e *LegendEl) GetChilds() []Element   { return e.childs }
+func (e *LegendEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *LegendEl) GetElName() string      { return e.elName }
 
 func Legend(attributes ...Attribute) func(...Element) Element {
-	el := LegendEl{elName: "legend"}
+	el := &LegendEl{elName: "legend"}
 	return elementImpl(el, attributes)
 }
 
@@ -833,12 +851,12 @@ type LiEl struct {
 	elName string
 }
 
-func (e LiEl) GetChilds() []Element   { return e.childs }
-func (e LiEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e LiEl) GetElName() string      { return e.elName }
+func (e *LiEl) GetChilds() []Element   { return e.childs }
+func (e *LiEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *LiEl) GetElName() string      { return e.elName }
 
 func Li(attributes ...Attribute) func(...Element) Element {
-	el := LiEl{elName: "li"}
+	el := &LiEl{elName: "li"}
 	return elementImpl(el, attributes)
 }
 
@@ -859,12 +877,12 @@ type LinkEl struct {
 	elName         string
 }
 
-func (e LinkEl) GetChilds() []Element   { return e.childs }
-func (e LinkEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e LinkEl) GetElName() string      { return e.elName }
+func (e *LinkEl) GetChilds() []Element   { return e.childs }
+func (e *LinkEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *LinkEl) GetElName() string      { return e.elName }
 
 func Link(attributes ...Attribute) func(...Element) Element {
-	el := LinkEl{elName: "link"}
+	el := &LinkEl{elName: "link"}
 	return elementImpl(el, attributes)
 }
 
@@ -874,12 +892,12 @@ type MainEl struct {
 	elName string
 }
 
-func (e MainEl) GetChilds() []Element   { return e.childs }
-func (e MainEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e MainEl) GetElName() string      { return e.elName }
+func (e *MainEl) GetChilds() []Element   { return e.childs }
+func (e *MainEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *MainEl) GetElName() string      { return e.elName }
 
 func Main(attributes ...Attribute) func(...Element) Element {
-	el := MainEl{elName: "main"}
+	el := &MainEl{elName: "main"}
 	return elementImpl(el, attributes)
 }
 
@@ -890,12 +908,12 @@ type MapEl struct {
 	elName string
 }
 
-func (e MapEl) GetChilds() []Element   { return e.childs }
-func (e MapEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e MapEl) GetElName() string      { return e.elName }
+func (e *MapEl) GetChilds() []Element   { return e.childs }
+func (e *MapEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *MapEl) GetElName() string      { return e.elName }
 
 func Map(attributes ...Attribute) func(...Element) Element {
-	el := MapEl{elName: "map"}
+	el := &MapEl{elName: "map"}
 	return elementImpl(el, attributes)
 }
 
@@ -905,12 +923,12 @@ type MarkEl struct {
 	elName string
 }
 
-func (e MarkEl) GetChilds() []Element   { return e.childs }
-func (e MarkEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e MarkEl) GetElName() string      { return e.elName }
+func (e *MarkEl) GetChilds() []Element   { return e.childs }
+func (e *MarkEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *MarkEl) GetElName() string      { return e.elName }
 
 func Mark(attributes ...Attribute) func(...Element) Element {
-	el := MarkEl{elName: "mark"}
+	el := &MarkEl{elName: "mark"}
 	return elementImpl(el, attributes)
 }
 
@@ -922,12 +940,12 @@ type MenuEl struct {
 	elName string
 }
 
-func (e MenuEl) GetChilds() []Element   { return e.childs }
-func (e MenuEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e MenuEl) GetElName() string      { return e.elName }
+func (e *MenuEl) GetChilds() []Element   { return e.childs }
+func (e *MenuEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *MenuEl) GetElName() string      { return e.elName }
 
 func Menu(attributes ...Attribute) func(...Element) Element {
-	el := MenuEl{elName: "menu"}
+	el := &MenuEl{elName: "menu"}
 	return elementImpl(el, attributes)
 }
 
@@ -939,12 +957,12 @@ type MenuItemEl struct {
 	elName string
 }
 
-func (e MenuItemEl) GetChilds() []Element   { return e.childs }
-func (e MenuItemEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e MenuItemEl) GetElName() string      { return e.elName }
+func (e *MenuItemEl) GetChilds() []Element   { return e.childs }
+func (e *MenuItemEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *MenuItemEl) GetElName() string      { return e.elName }
 
 func MenuItem(attributes ...Attribute) func(...Element) Element {
-	el := MenuItemEl{elName: "menuitem"}
+	el := &MenuItemEl{elName: "menuitem"}
 	return elementImpl(el, attributes)
 }
 
@@ -959,12 +977,12 @@ type MeterEl struct {
 	elName  string
 }
 
-func (e MeterEl) GetChilds() []Element   { return []Element{} }
-func (e MeterEl) AppendChild(el Element) {}
-func (e MeterEl) GetElName() string      { return e.elName }
+func (e *MeterEl) GetChilds() []Element   { return []Element{} }
+func (e *MeterEl) AppendChild(el Element) {}
+func (e *MeterEl) GetElName() string      { return e.elName }
 
 func Meter(attributes ...Attribute) func(...Element) Element {
-	el := MeterEl{elName: "meter"}
+	el := &MeterEl{elName: "meter"}
 	return elementImpl(el, attributes)
 } // todo
 
@@ -974,12 +992,12 @@ type NavEl struct {
 	elName string
 }
 
-func (e NavEl) GetChilds() []Element   { return e.childs }
-func (e NavEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e NavEl) GetElName() string      { return e.elName }
+func (e *NavEl) GetChilds() []Element   { return e.childs }
+func (e *NavEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *NavEl) GetElName() string      { return e.elName }
 
 func Nav(attributes ...Attribute) func(...Element) Element {
-	el := NavEl{elName: "nav"}
+	el := &NavEl{elName: "nav"}
 	return elementImpl(el, attributes)
 }
 
@@ -991,12 +1009,12 @@ type ObjectEl struct {
 	elName string
 }
 
-func (e ObjectEl) GetChilds() []Element   { return e.childs }
-func (e ObjectEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e ObjectEl) GetElName() string      { return e.elName }
+func (e *ObjectEl) GetChilds() []Element   { return e.childs }
+func (e *ObjectEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *ObjectEl) GetElName() string      { return e.elName }
 
 func Object(attributes ...Attribute) func(...Element) Element {
-	el := ObjectEl{elName: "object"}
+	el := &ObjectEl{elName: "object"}
 	return elementImpl(el, attributes)
 }
 
@@ -1009,12 +1027,12 @@ type OlEl struct {
 	elName   string
 }
 
-func (e OlEl) GetChilds() []Element   { return e.childs }
-func (e OlEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e OlEl) GetElName() string      { return e.elName }
+func (e *OlEl) GetChilds() []Element   { return e.childs }
+func (e *OlEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *OlEl) GetElName() string      { return e.elName }
 
 func Ol(attributes ...Attribute) func(...Element) Element {
-	el := OlEl{elName: "ol"}
+	el := &OlEl{elName: "ol"}
 	return elementImpl(el, attributes)
 }
 
@@ -1025,12 +1043,12 @@ type OptGroupEl struct {
 	elName string
 }
 
-func (e OptGroupEl) GetChilds() []Element   { return e.childs }
-func (e OptGroupEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e OptGroupEl) GetElName() string      { return e.elName }
+func (e *OptGroupEl) GetChilds() []Element   { return e.childs }
+func (e *OptGroupEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *OptGroupEl) GetElName() string      { return e.elName }
 
 func OptGroup(attributes ...Attribute) func(...Element) Element {
-	el := OptGroupEl{elName: "optgroup"}
+	el := &OptGroupEl{elName: "optgroup"}
 	return elementImpl(el, attributes)
 }
 
@@ -1042,12 +1060,12 @@ type OptionEl struct {
 	elName   string
 }
 
-func (e OptionEl) GetChilds() []Element   { return []Element{} }
-func (e OptionEl) AppendChild(el Element) {}
-func (e OptionEl) GetElName() string      { return e.elName }
+func (e *OptionEl) GetChilds() []Element   { return []Element{} }
+func (e *OptionEl) AppendChild(el Element) {}
+func (e *OptionEl) GetElName() string      { return e.elName }
 
 func Option(attributes ...Attribute) func(...Element) Element {
-	el := OptionEl{elName: "option"}
+	el := &OptionEl{elName: "option"}
 	return elementImpl(el, attributes)
 } // todo
 
@@ -1059,12 +1077,12 @@ type OutputEl struct {
 	elName string
 }
 
-func (e OutputEl) GetChilds() []Element   { return []Element{} }
-func (e OutputEl) AppendChild(el Element) {}
-func (e OutputEl) GetElName() string      { return e.elName }
+func (e *OutputEl) GetChilds() []Element   { return []Element{} }
+func (e *OutputEl) AppendChild(el Element) {}
+func (e *OutputEl) GetElName() string      { return e.elName }
 
 func Output(attributes ...Attribute) func(...Element) Element {
-	el := OutputEl{elName: "output"}
+	el := &OutputEl{elName: "output"}
 	return elementImpl(el, attributes)
 } // todo
 
@@ -1075,12 +1093,12 @@ type ParamEl struct {
 	elName string
 }
 
-func (e ParamEl) GetChilds() []Element   { return []Element{} }
-func (e ParamEl) AppendChild(el Element) {}
-func (e ParamEl) GetElName() string      { return e.elName }
+func (e *ParamEl) GetChilds() []Element   { return []Element{} }
+func (e *ParamEl) AppendChild(el Element) {}
+func (e *ParamEl) GetElName() string      { return e.elName }
 
 func Param(attributes ...Attribute) func(...Element) Element {
-	el := ParamEl{elName: "param"}
+	el := &ParamEl{elName: "param"}
 	return elementImpl(el, attributes)
 } // todo
 
@@ -1090,12 +1108,12 @@ type PictureEl struct {
 	elName string
 }
 
-func (e PictureEl) GetChilds() []Element   { return e.childs }
-func (e PictureEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e PictureEl) GetElName() string      { return e.elName }
+func (e *PictureEl) GetChilds() []Element   { return e.childs }
+func (e *PictureEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *PictureEl) GetElName() string      { return e.elName }
 
 func Picture(attributes ...Attribute) func(...Element) Element {
-	el := PictureEl{elName: "picture"}
+	el := &PictureEl{elName: "picture"}
 	return elementImpl(el, attributes)
 }
 
@@ -1105,12 +1123,12 @@ type PreEl struct {
 	elName string
 }
 
-func (e PreEl) GetChilds() []Element   { return e.childs }
-func (e PreEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e PreEl) GetElName() string      { return e.elName }
+func (e *PreEl) GetChilds() []Element   { return e.childs }
+func (e *PreEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *PreEl) GetElName() string      { return e.elName }
 
 func Pre(attributes ...Attribute) func(...Element) Element {
-	el := PreEl{elName: "pre"}
+	el := &PreEl{elName: "pre"}
 	return elementImpl(el, attributes)
 }
 
@@ -1121,12 +1139,12 @@ type ProgressEl struct {
 	elName string
 }
 
-func (e ProgressEl) GetChilds() []Element   { return []Element{} }
-func (e ProgressEl) AppendChild(el Element) {}
-func (e ProgressEl) GetElName() string      { return e.elName }
+func (e *ProgressEl) GetChilds() []Element   { return []Element{} }
+func (e *ProgressEl) AppendChild(el Element) {}
+func (e *ProgressEl) GetElName() string      { return e.elName }
 
 func Progress(attributes ...Attribute) func(...Element) Element {
-	el := ProgressEl{elName: "progress"}
+	el := &ProgressEl{elName: "progress"}
 	return elementImpl(el, attributes)
 } // todo
 
@@ -1137,12 +1155,12 @@ type QEl struct {
 	elName string
 }
 
-func (e QEl) GetChilds() []Element   { return e.childs }
-func (e QEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e QEl) GetElName() string      { return e.elName }
+func (e *QEl) GetChilds() []Element   { return e.childs }
+func (e *QEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *QEl) GetElName() string      { return e.elName }
 
 func Q(attributes ...Attribute) func(...Element) Element {
-	el := QEl{elName: "q"}
+	el := &QEl{elName: "q"}
 	return elementImpl(el, attributes)
 }
 
@@ -1152,12 +1170,12 @@ type RpEl struct {
 	elName string
 }
 
-func (e RpEl) GetChilds() []Element   { return e.childs }
-func (e RpEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e RpEl) GetElName() string      { return e.elName }
+func (e *RpEl) GetChilds() []Element   { return e.childs }
+func (e *RpEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *RpEl) GetElName() string      { return e.elName }
 
 func Rp(attributes ...Attribute) func(...Element) Element {
-	el := RpEl{elName: "rp"}
+	el := &RpEl{elName: "rp"}
 	return elementImpl(el, attributes)
 }
 
@@ -1167,12 +1185,12 @@ type RtEl struct {
 	elName string
 }
 
-func (e RtEl) GetChilds() []Element   { return e.childs }
-func (e RtEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e RtEl) GetElName() string      { return e.elName }
+func (e *RtEl) GetChilds() []Element   { return e.childs }
+func (e *RtEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *RtEl) GetElName() string      { return e.elName }
 
 func Rt(attributes ...Attribute) func(...Element) Element {
-	el := RtEl{elName: "rt"}
+	el := &RtEl{elName: "rt"}
 	return elementImpl(el, attributes)
 }
 
@@ -1182,12 +1200,12 @@ type RubyEl struct {
 	elName string
 }
 
-func (e RubyEl) GetChilds() []Element   { return e.childs }
-func (e RubyEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e RubyEl) GetElName() string      { return e.elName }
+func (e *RubyEl) GetChilds() []Element   { return e.childs }
+func (e *RubyEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *RubyEl) GetElName() string      { return e.elName }
 
 func Ruby(attributes ...Attribute) func(...Element) Element {
-	el := RubyEl{elName: "ruby"}
+	el := &RubyEl{elName: "ruby"}
 	return elementImpl(el, attributes)
 }
 
@@ -1197,12 +1215,12 @@ type SEl struct {
 	elName string
 }
 
-func (e SEl) GetChilds() []Element   { return e.childs }
-func (e SEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e SEl) GetElName() string      { return e.elName }
+func (e *SEl) GetChilds() []Element   { return e.childs }
+func (e *SEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *SEl) GetElName() string      { return e.elName }
 
 func S(attributes ...Attribute) func(...Element) Element {
-	el := SEl{elName: "s"}
+	el := &SEl{elName: "s"}
 	return elementImpl(el, attributes)
 }
 
@@ -1212,12 +1230,12 @@ type SampEl struct {
 	elName string
 }
 
-func (e SampEl) GetChilds() []Element   { return e.childs }
-func (e SampEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e SampEl) GetElName() string      { return e.elName }
+func (e *SampEl) GetChilds() []Element   { return e.childs }
+func (e *SampEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *SampEl) GetElName() string      { return e.elName }
 
 func Samp(attributes ...Attribute) func(...Element) Element {
-	el := SampEl{elName: "samp"}
+	el := &SampEl{elName: "samp"}
 	return elementImpl(el, attributes)
 }
 
@@ -1227,12 +1245,12 @@ type SectionEl struct {
 	elName string
 }
 
-func (e SectionEl) GetChilds() []Element   { return e.childs }
-func (e SectionEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e SectionEl) GetElName() string      { return e.elName }
+func (e *SectionEl) GetChilds() []Element   { return e.childs }
+func (e *SectionEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *SectionEl) GetElName() string      { return e.elName }
 
 func Section(attributes ...Attribute) func(...Element) Element {
-	el := SectionEl{elName: "section"}
+	el := &SectionEl{elName: "section"}
 	return elementImpl(el, attributes)
 }
 
@@ -1245,12 +1263,12 @@ type SelectEl struct {
 	elName   string
 }
 
-func (e SelectEl) GetChilds() []Element   { return e.childs }
-func (e SelectEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e SelectEl) GetElName() string      { return e.elName }
+func (e *SelectEl) GetChilds() []Element   { return e.childs }
+func (e *SelectEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *SelectEl) GetElName() string      { return e.elName }
 
 func Select(attributes ...Attribute) func(...Element) Element {
-	el := SelectEl{elName: "select"}
+	el := &SelectEl{elName: "select"}
 	return elementImpl(el, attributes)
 }
 
@@ -1260,12 +1278,12 @@ type SmallEl struct {
 	elName string
 }
 
-func (e SmallEl) GetChilds() []Element   { return e.childs }
-func (e SmallEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e SmallEl) GetElName() string      { return e.elName }
+func (e *SmallEl) GetChilds() []Element   { return e.childs }
+func (e *SmallEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *SmallEl) GetElName() string      { return e.elName }
 
 func Small(attributes ...Attribute) func(...Element) Element {
-	el := SmallEl{elName: "small"}
+	el := &SmallEl{elName: "small"}
 	return elementImpl(el, attributes)
 }
 
@@ -1279,12 +1297,12 @@ type SourceEl struct {
 	elName string
 }
 
-func (e SourceEl) GetChilds() []Element   { return []Element{} }
-func (e SourceEl) AppendChild(el Element) {}
-func (e SourceEl) GetElName() string      { return e.elName }
+func (e *SourceEl) GetChilds() []Element   { return []Element{} }
+func (e *SourceEl) AppendChild(el Element) {}
+func (e *SourceEl) GetElName() string      { return e.elName }
 
 func Source(attributes ...Attribute) func(...Element) Element {
-	el := SourceEl{elName: "source"}
+	el := &SourceEl{elName: "source"}
 	return elementImpl(el, attributes)
 } // todo
 
@@ -1294,12 +1312,12 @@ type SpanEl struct {
 	elName string
 }
 
-func (e SpanEl) GetChilds() []Element   { return e.childs }
-func (e SpanEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e SpanEl) GetElName() string      { return e.elName }
+func (e *SpanEl) GetChilds() []Element   { return e.childs }
+func (e *SpanEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *SpanEl) GetElName() string      { return e.elName }
 
 func Span(attributes ...Attribute) func(...Element) Element {
-	el := SpanEl{elName: "span"}
+	el := &SpanEl{elName: "span"}
 	return elementImpl(el, attributes)
 }
 
@@ -1309,12 +1327,12 @@ type StrongEl struct {
 	elName string
 }
 
-func (e StrongEl) GetChilds() []Element   { return e.childs }
-func (e StrongEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e StrongEl) GetElName() string      { return e.elName }
+func (e *StrongEl) GetChilds() []Element   { return e.childs }
+func (e *StrongEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *StrongEl) GetElName() string      { return e.elName }
 
 func Strong(attributes ...Attribute) func(...Element) Element {
-	el := StrongEl{elName: "strong"}
+	el := &StrongEl{elName: "strong"}
 	return elementImpl(el, attributes)
 }
 
@@ -1324,12 +1342,12 @@ type SubEl struct {
 	elName string
 }
 
-func (e SubEl) GetChilds() []Element   { return e.childs }
-func (e SubEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e SubEl) GetElName() string      { return e.elName }
+func (e *SubEl) GetChilds() []Element   { return e.childs }
+func (e *SubEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *SubEl) GetElName() string      { return e.elName }
 
 func Sub(attributes ...Attribute) func(...Element) Element {
-	el := SubEl{elName: "sub"}
+	el := &SubEl{elName: "sub"}
 	return elementImpl(el, attributes)
 }
 
@@ -1339,12 +1357,12 @@ type SummaryEl struct {
 	elName string
 }
 
-func (e SummaryEl) GetChilds() []Element   { return e.childs }
-func (e SummaryEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e SummaryEl) GetElName() string      { return e.elName }
+func (e *SummaryEl) GetChilds() []Element   { return e.childs }
+func (e *SummaryEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *SummaryEl) GetElName() string      { return e.elName }
 
 func Summary(attributes ...Attribute) func(...Element) Element {
-	el := SummaryEl{elName: "summary"}
+	el := &SummaryEl{elName: "summary"}
 	return elementImpl(el, attributes)
 }
 
@@ -1354,12 +1372,12 @@ type SupEl struct {
 	elName string
 }
 
-func (e SupEl) GetChilds() []Element   { return e.childs }
-func (e SupEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e SupEl) GetElName() string      { return e.elName }
+func (e *SupEl) GetChilds() []Element   { return e.childs }
+func (e *SupEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *SupEl) GetElName() string      { return e.elName }
 
 func Sup(attributes ...Attribute) func(...Element) Element {
-	el := SupEl{elName: "sup"}
+	el := &SupEl{elName: "sup"}
 	return elementImpl(el, attributes)
 }
 
@@ -1369,12 +1387,12 @@ type TableEl struct {
 	elName string
 }
 
-func (e TableEl) GetChilds() []Element   { return e.childs }
-func (e TableEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e TableEl) GetElName() string      { return e.elName }
+func (e *TableEl) GetChilds() []Element   { return e.childs }
+func (e *TableEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *TableEl) GetElName() string      { return e.elName }
 
 func Table(attributes ...Attribute) func(...Element) Element {
-	el := TableEl{elName: "table"}
+	el := &TableEl{elName: "table"}
 	return elementImpl(el, attributes)
 }
 
@@ -1384,12 +1402,12 @@ type TBodyEl struct {
 	elName string
 }
 
-func (e TBodyEl) GetChilds() []Element   { return e.childs }
-func (e TBodyEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e TBodyEl) GetElName() string      { return e.elName }
+func (e *TBodyEl) GetChilds() []Element   { return e.childs }
+func (e *TBodyEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *TBodyEl) GetElName() string      { return e.elName }
 
 func TBody(attributes ...Attribute) func(...Element) Element {
-	el := TBodyEl{elName: "tbody"}
+	el := &TBodyEl{elName: "tbody"}
 	return elementImpl(el, attributes)
 }
 
@@ -1401,12 +1419,12 @@ type TdEl struct {
 	elName  string
 }
 
-func (e TdEl) GetChilds() []Element   { return e.childs }
-func (e TdEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e TdEl) GetElName() string      { return e.elName }
+func (e *TdEl) GetChilds() []Element   { return e.childs }
+func (e *TdEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *TdEl) GetElName() string      { return e.elName }
 
 func Td(attributes ...Attribute) func(...Element) Element {
-	el := TdEl{elName: "td"}
+	el := &TdEl{elName: "td"}
 	return elementImpl(el, attributes)
 }
 
@@ -1422,12 +1440,12 @@ type TextareaEl struct {
 	elName   string
 }
 
-func (e TextareaEl) GetChilds() []Element   { return []Element{} }
-func (e TextareaEl) AppendChild(el Element) {}
-func (e TextareaEl) GetElName() string      { return e.elName }
+func (e *TextareaEl) GetChilds() []Element   { return []Element{} }
+func (e *TextareaEl) AppendChild(el Element) {}
+func (e *TextareaEl) GetElName() string      { return e.elName }
 
 func Textarea(attributes ...Attribute) func(...Element) Element {
-	el := TextareaEl{elName: "textarea"}
+	el := &TextareaEl{elName: "textarea"}
 	return elementImpl(el, attributes)
 } // todo
 
@@ -1437,12 +1455,12 @@ type TFootEl struct {
 	elName string
 }
 
-func (e TFootEl) GetChilds() []Element   { return e.childs }
-func (e TFootEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e TFootEl) GetElName() string      { return e.elName }
+func (e *TFootEl) GetChilds() []Element   { return e.childs }
+func (e *TFootEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *TFootEl) GetElName() string      { return e.elName }
 
 func TFoot(attributes ...Attribute) func(...Element) Element {
-	el := TFootEl{elName: "tfoot"}
+	el := &TFootEl{elName: "tfoot"}
 	return elementImpl(el, attributes)
 }
 
@@ -1455,12 +1473,12 @@ type ThEl struct {
 	elName  string
 }
 
-func (e ThEl) GetChilds() []Element   { return e.childs }
-func (e ThEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e ThEl) GetElName() string      { return e.elName }
+func (e *ThEl) GetChilds() []Element   { return e.childs }
+func (e *ThEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *ThEl) GetElName() string      { return e.elName }
 
 func Th(attributes ...Attribute) func(...Element) Element {
-	el := ThEl{elName: "th"}
+	el := &ThEl{elName: "th"}
 	return elementImpl(el, attributes)
 }
 
@@ -1470,12 +1488,12 @@ type TheadEl struct {
 	elName string
 }
 
-func (e TheadEl) GetChilds() []Element   { return e.childs }
-func (e TheadEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e TheadEl) GetElName() string      { return e.elName }
+func (e *TheadEl) GetChilds() []Element   { return e.childs }
+func (e *TheadEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *TheadEl) GetElName() string      { return e.elName }
 
 func Thead(attributes ...Attribute) func(...Element) Element {
-	el := TheadEl{elName: "thead"}
+	el := &TheadEl{elName: "thead"}
 	return elementImpl(el, attributes)
 }
 
@@ -1486,12 +1504,12 @@ type TimeEl struct {
 	elName   string
 }
 
-func (e TimeEl) GetChilds() []Element   { return e.childs }
-func (e TimeEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e TimeEl) GetElName() string      { return e.elName }
+func (e *TimeEl) GetChilds() []Element   { return e.childs }
+func (e *TimeEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *TimeEl) GetElName() string      { return e.elName }
 
 func Time(attributes ...Attribute) func(...Element) Element {
-	el := TimeEl{elName: "time"}
+	el := &TimeEl{elName: "time"}
 	return elementImpl(el, attributes)
 }
 
@@ -1501,12 +1519,12 @@ type TrEl struct {
 	elName string
 }
 
-func (e TrEl) GetChilds() []Element   { return e.childs }
-func (e TrEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e TrEl) GetElName() string      { return e.elName }
+func (e *TrEl) GetChilds() []Element   { return e.childs }
+func (e *TrEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *TrEl) GetElName() string      { return e.elName }
 
 func Tr(attributes ...Attribute) func(...Element) Element {
-	el := TrEl{elName: "tr"}
+	el := &TrEl{elName: "tr"}
 	return elementImpl(el, attributes)
 }
 
@@ -1520,12 +1538,12 @@ type TrackEl struct {
 	elName  string
 }
 
-func (e TrackEl) GetChilds() []Element   { return []Element{} }
-func (e TrackEl) AppendChild(el Element) {}
-func (e TrackEl) GetElName() string      { return e.elName }
+func (e *TrackEl) GetChilds() []Element   { return []Element{} }
+func (e *TrackEl) AppendChild(el Element) {}
+func (e *TrackEl) GetElName() string      { return e.elName }
 
 func Track(attributes ...Attribute) func(...Element) Element {
-	el := TrackEl{elName: "track"}
+	el := &TrackEl{elName: "track"}
 	return elementImpl(el, attributes)
 } // todo
 
@@ -1535,12 +1553,12 @@ type UEl struct {
 	elName string
 }
 
-func (e UEl) GetChilds() []Element   { return e.childs }
-func (e UEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e UEl) GetElName() string      { return e.elName }
+func (e *UEl) GetChilds() []Element   { return e.childs }
+func (e *UEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *UEl) GetElName() string      { return e.elName }
 
 func U(attributes ...Attribute) func(...Element) Element {
-	el := UEl{elName: "u"}
+	el := &UEl{elName: "u"}
 	return elementImpl(el, attributes)
 }
 
@@ -1550,12 +1568,12 @@ type UlEl struct {
 	elName string
 }
 
-func (e UlEl) GetChilds() []Element   { return e.childs }
-func (e UlEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e UlEl) GetElName() string      { return e.elName }
+func (e *UlEl) GetChilds() []Element   { return e.childs }
+func (e *UlEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *UlEl) GetElName() string      { return e.elName }
 
 func Ul(attributes ...Attribute) func(...Element) Element {
-	el := UlEl{elName: "ul"}
+	el := &UlEl{elName: "ul"}
 	return elementImpl(el, attributes)
 }
 
@@ -1565,12 +1583,12 @@ type VarEl struct {
 	elName string
 }
 
-func (e VarEl) GetChilds() []Element   { return e.childs }
-func (e VarEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e VarEl) GetElName() string      { return e.elName }
+func (e *VarEl) GetChilds() []Element   { return e.childs }
+func (e *VarEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *VarEl) GetElName() string      { return e.elName }
 
 func Var(attributes ...Attribute) func(...Element) Element {
-	el := VarEl{elName: "var"}
+	el := &VarEl{elName: "var"}
 	return elementImpl(el, attributes)
 }
 
@@ -1589,12 +1607,12 @@ type VideoEl struct {
 	elName   string
 }
 
-func (e VideoEl) GetChilds() []Element   { return e.childs }
-func (e VideoEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e VideoEl) GetElName() string      { return e.elName }
+func (e *VideoEl) GetChilds() []Element   { return e.childs }
+func (e *VideoEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *VideoEl) GetElName() string      { return e.elName }
 
 func Video(attributes ...Attribute) func(...Element) Element {
-	el := VideoEl{elName: "video"}
+	el := &VideoEl{elName: "video"}
 	return elementImpl(el, attributes)
 }
 
@@ -1603,12 +1621,12 @@ type WbrEl struct {
 	elName string
 }
 
-func (e WbrEl) GetChilds() []Element   { return []Element{} }
-func (e WbrEl) AppendChild(el Element) {}
-func (e WbrEl) GetElName() string      { return e.elName }
+func (e *WbrEl) GetChilds() []Element   { return []Element{} }
+func (e *WbrEl) AppendChild(el Element) {}
+func (e *WbrEl) GetElName() string      { return e.elName }
 
 func Wbr(attributes ...Attribute) func(...Element) Element {
-	el := WbrEl{elName: "wbr"}
+	el := &WbrEl{elName: "wbr"}
 	return elementImpl(el, attributes)
 } // todo
 
@@ -1620,12 +1638,12 @@ type DivEl struct {
 	elName string
 }
 
-func (e DivEl) GetChilds() []Element   { return e.childs }
-func (e DivEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e DivEl) GetElName() string      { return e.elName }
+func (e *DivEl) GetChilds() []Element   { return e.childs }
+func (e *DivEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *DivEl) GetElName() string      { return e.elName }
 
 func Div(attributes ...Attribute) func(...Element) Element {
-	el := DivEl{elName: "div"}
+	el := &DivEl{elName: "div"}
 
 	return elementImpl(el, attributes)
 }
@@ -1638,12 +1656,12 @@ type PEl struct {
 	elName string
 }
 
-func (e PEl) GetChilds() []Element   { return e.childs }
-func (e PEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e PEl) GetElName() string      { return e.elName }
+func (e *PEl) GetChilds() []Element   { return e.childs }
+func (e *PEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *PEl) GetElName() string      { return e.elName }
 
 func P(attributes ...Attribute) func(...Element) Element {
-	el := PEl{elName: "p"}
+	el := &PEl{elName: "p"}
 
 	return elementImpl(el, attributes)
 }
@@ -1665,12 +1683,12 @@ type ButtonEl struct {
 	elName         string
 }
 
-func (e ButtonEl) GetChilds() []Element   { return e.childs }
-func (e ButtonEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e ButtonEl) GetElName() string      { return e.elName }
+func (e *ButtonEl) GetChilds() []Element   { return e.childs }
+func (e *ButtonEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *ButtonEl) GetElName() string      { return e.elName }
 
 func Button(attributes ...Attribute) func(...Element) Element {
-	el := ButtonEl{elName: "button"}
+	el := &ButtonEl{elName: "button"}
 
 	return elementImpl(el, attributes)
 }
@@ -1684,12 +1702,12 @@ type LabelEl struct {
 	elName string
 }
 
-func (e LabelEl) GetChilds() []Element   { return e.childs }
-func (e LabelEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e LabelEl) GetElName() string      { return e.elName }
+func (e *LabelEl) GetChilds() []Element   { return e.childs }
+func (e *LabelEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *LabelEl) GetElName() string      { return e.elName }
 
 func Label(attributes ...Attribute) func(...Element) Element {
-	el := LabelEl{elName: "label"}
+	el := &LabelEl{elName: "label"}
 
 	return elementImpl(el, attributes)
 }
@@ -1707,12 +1725,12 @@ type InputEl struct {
 	elName      string
 }
 
-func (e InputEl) GetChilds() []Element   { return e.childs }
-func (e InputEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e InputEl) GetElName() string      { return e.elName }
+func (e *InputEl) GetChilds() []Element   { return e.childs }
+func (e *InputEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *InputEl) GetElName() string      { return e.elName }
 
 func Input(attributes ...Attribute) func(...Element) Element {
-	el := InputEl{elName: "input"}
+	el := &InputEl{elName: "input"}
 
 	return elementImpl(el, attributes)
 }
@@ -1725,12 +1743,12 @@ type HeaderEl struct {
 	elName string
 }
 
-func (e HeaderEl) GetChilds() []Element   { return e.childs }
-func (e HeaderEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
-func (e HeaderEl) GetElName() string      { return e.elName }
+func (e *HeaderEl) GetChilds() []Element   { return e.childs }
+func (e *HeaderEl) AppendChild(el Element) { e.childs = append(e.childs, el) }
+func (e *HeaderEl) GetElName() string      { return e.elName }
 
 func Header(attributes ...Attribute) func(...Element) Element {
-	el := HeaderEl{elName: "header"}
+	el := &HeaderEl{elName: "header"}
 
 	return elementImpl(el, attributes)
 }

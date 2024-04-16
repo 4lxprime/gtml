@@ -791,3 +791,10 @@ func OnReset(handler EventHandler) Attribute {
 		Value: handler,
 	}
 }
+
+func CustomAttr[T EventHandler | string](attrName string, attrValue T) Attribute {
+	return Attribute{
+		Name:  attrName,
+		Value: attrValue,
+	}
+}

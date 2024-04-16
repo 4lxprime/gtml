@@ -121,18 +121,17 @@ func Build(element Element) js.Func {
 		var buildElement func(elem Element, parent js.Value) js.Value
 		buildElement = func(elem Element, parent js.Value) js.Value {
 			switch el := elem.(type) {
-			case TextEl: // fake element for text
+			case *TextEl: // fake element for text
 				parent.Set("innerText", el.InnerText)
-				fmt.Println(el.InnerText)
 
 				// return parrent because we just added text content
 				// in parent element and we don't spawn a new element
 				return parent
 
-			case EmptyEl:
+			case *EmptyEl:
 				return parent
 
-			case SliceEl:
+			case *SliceEl:
 				// here we don't want to create and append to the dom
 				// a slice element, just append childs to parent, so:
 				// loop over each child element and create the tree

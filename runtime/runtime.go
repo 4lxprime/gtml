@@ -42,6 +42,9 @@ func Runtime(appElement *gtml.App) {
 	})
 
 	// ---------------- App ---->
+	// NOTE: this will be called at page load
+	// when the wasm code will  be executed in the client
+	// -------------------------
 
 	js.Global().Set(
 		"app",

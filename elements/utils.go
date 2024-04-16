@@ -14,40 +14,40 @@ func hasField(
 	return field.IsValid()
 }
 
-func setField(
+func setFieldValue(
 	element interface{},
 	fieldName string,
 	value interface{},
 ) error {
-	val := reflect.ValueOf(element)
+	val := reflect.ValueOf(element).Elem()
 
-	if val.Kind() != reflect.Ptr {
-		val = reflect.ValueOf(&element).Elem()
+	field := val.FieldByName(fieldName)
+	basicField := val.FieldByName("BasicElement")
 
-	} else {
-		val = val.Elem()
+	if !field.IsValid() {
+		if basicField.IsValid() && basicField.CanSet() {
+			basicFieldName := basicField.FieldByName(fieldName)
+			if basicFieldName.IsValid() && basicFieldName.CanSet() {
+				return setValue(basicField, value)
+			}
+		}
+
+		customField := val.FieldByName("Custom")
+		if customField.IsValid() && customField.CanSet() {
+			customFieldName := customField.FieldByName(fieldName)
+			if customFieldName.IsValid() && customFieldName.CanSet() {
+				return setValue(basicField, value)
+			}
+		}
+
+		return fmt.Errorf("field %s doesn't exist", fieldName)
 	}
 
-	fieldVal := val.FieldByName(fieldName)
-
-	if fieldVal.IsValid() && fieldVal.CanSet() {
-		return setValue(fieldVal, value)
+	if !field.CanSet() {
+		return fmt.Errorf("cannot edit field %s", fieldName)
 	}
 
-	// Assuming BasicElement is a struct field, not an interface or pointer
-	basicElVal := val.FieldByName("BasicElement")
-
-	if !basicElVal.IsValid() || !basicElVal.CanSet() {
-		return fmt.Errorf("cannot found or set BasicElement on %v", reflect.TypeOf(element))
-	}
-
-	fieldVal = basicElVal.FieldByName(fieldName)
-	fmt.Println(fieldVal, fieldVal.IsValid(), fieldVal.CanSet())
-	if fieldVal.IsValid() && fieldVal.CanSet() {
-		return setValue(fieldVal, value)
-	}
-
-	return fmt.Errorf("cannot found or set %s", fieldName)
+	return setValue(field, value)
 }
 
 func setValue(
@@ -88,7 +88,7 @@ func setValue(
 
 func fieldsToMap(s interface{}) map[string]interface{} {
 	fields := make(map[string]interface{})
-	value := reflect.ValueOf(s)
+	value := reflect.ValueOf(s).Elem()
 	t := value.Type()
 
 	var addFields func(reflect.Value, reflect.Type)

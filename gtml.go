@@ -31,6 +31,7 @@ func (a *App) UseState(v interface{}) *State {
 	return s
 }
 
+// this function will be used to give App main element
 func (a *App) Use(el elements.Element) *App {
 	a.Element = el
 
@@ -54,7 +55,7 @@ func If(
 		}
 
 		return statement{
-			el: elements.EmptyEl{},
+			el: &elements.EmptyEl{},
 		}
 	}
 }
@@ -66,7 +67,7 @@ func (s statement) Elif(
 ) func(el elements.Element) statement {
 	return func(el elements.Element) statement {
 		switch s.el.(type) {
-		case elements.EmptyEl:
+		case *elements.EmptyEl:
 			if condition {
 				return statement{
 					el: el,
@@ -82,7 +83,7 @@ func (s statement) Elif(
 
 func (s statement) Else(el elements.Element) elements.Element {
 	switch s.el.(type) {
-	case elements.EmptyEl:
+	case *elements.EmptyEl:
 		return el
 
 	default:
@@ -96,12 +97,12 @@ func (s statement) Value() elements.Element {
 
 func For(
 	init, reached int,
-) func(fn func(int) elements.Element) elements.SliceEl {
-	sliceElement := elements.SliceEl{}
+) func(fn func(int) elements.Element) *elements.SliceEl {
+	sliceElement := &elements.SliceEl{}
 
 	reverse := reached > init
 
-	return func(fn func(int) elements.Element) elements.SliceEl {
+	return func(fn func(int) elements.Element) *elements.SliceEl {
 		if reverse {
 			for i := init; i >= reached; i-- {
 				sliceElement.AppendChild(fn(i))
@@ -118,18 +119,33 @@ func For(
 
 func Each(
 	slice interface{},
-) func(fn func(int, any) elements.Element) elements.SliceEl {
-	sliceElement := elements.SliceEl{}
-	return func(fn func(int, any) elements.Element) elements.SliceEl {
+) func(fn func(int, any) elements.Element) *elements.SliceEl {
+	sliceElement := &elements.SliceEl{}
+	return func(fn func(int, any) elements.Element) *elements.SliceEl {
 		if reflect.TypeOf(slice).Kind() != reflect.Slice {
 			log.Println("argument must be a slice")
-			return elements.SliceEl{}
+			return sliceElement
 		}
 
 		s := reflect.ValueOf(slice)
 		for i := 0; i <= s.Len(); i++ {
 			sliceElement.AppendChild(
 				fn(i, s.Index(i).Interface()),
+			)
+		}
+
+		return sliceElement
+	}
+}
+
+func Each2[T any](
+	slice []T,
+) func(fn func(int, T) elements.Element) *elements.SliceEl {
+	sliceElement := &elements.SliceEl{}
+	return func(fn func(int, T) elements.Element) *elements.SliceEl {
+		for i := 0; i < len(slice); i++ {
+			sliceElement.AppendChild(
+				fn(i, slice[i]),
 			)
 		}
 
