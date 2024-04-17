@@ -14,6 +14,7 @@ type App struct {
 
 func NewApp() *App {
 	return &App{
+		Element:      &elements.EmptyEl{},
 		StateManager: NewStateManager(),
 	}
 }

@@ -12,17 +12,20 @@ import (
 // this data will be placed on value field
 type State struct {
 	id      int64
+	started bool
 	channel chan interface{}
 	value   interface{}
 }
 
 func (s *State) Get() interface{} {
-	return s.value
+	if !s.started {
+		return s.value
+	}
+
+	return <-s.channel
 }
 
-func (s *State) Set(v interface{}) {
-	s.channel <- v
-}
+func (s *State) Set(v interface{}) { s.channel <- v }
 
 type StateManager struct {
 	states map[int64]*State
@@ -54,10 +57,9 @@ func (m *StateManager) Start() {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
-	//for id, state := range m.states {
-	//	state.id = id
-	//	go m.listenState(state)
-	//}
+	for _, state := range m.states {
+		state.started = true
+	}
 }
 
 func (m *StateManager) listenState(s *State) {
@@ -78,6 +80,4 @@ func (m *StateManager) listenState(s *State) {
 	}
 }
 
-func (m *StateManager) Stop() {
-	m.cancel()
-}
+func (m *StateManager) Stop() { m.cancel() }
